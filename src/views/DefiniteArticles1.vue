@@ -4,13 +4,11 @@ import { ref } from "vue";
 const success = ref(false);
 const message = ref("");
 
-// TODO: τό and τά need to be changed to accept both nominative and accusative as answers
-// TODO: add vocative
 const questions = ref([
   {
     q: "ὁ",
     a: {
-      gender: "masculine",
+      genders: ["masculine"],
       number: "singular",
       cases: ["nominative"],
     },
@@ -18,175 +16,15 @@ const questions = ref([
   {
     q: "οἱ",
     a: {
-        gender: "masculine",
-        number: "plural",
-        cases: ["nominative"],
-    }
-  },
-  {
-    q: "τό",
-    a: {
-        gender: "neuter",
-        number: "singular",
-        cases: ["nominative", "accusative"],
-    }
-  },
-  {
-    q: "τά",
-    a: {
-        gender: "neuter",
-        number: "plural",
-        cases: ["nominative", "accusative"],
-    }
-  },
-  {
-    q: "ἡ",
-    a: {
-      gender: "feminine",
-      number: "singular",
-      cases: ["nominative"],
-    },
-  },
-  {
-    q: "αἱ",
-    a: {
-      gender: "feminine",
+      genders: ["masculine"],
       number: "plural",
       cases: ["nominative"],
-    },
-  },
-  {
-    q: "τοῦ",
-    a: {
-      gender: "masculine",
-      number: "singular",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "τῶν",
-    a: {
-      gender: "masculine",
-      number: "plural",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "τῆς",
-    a: {
-      gender: "feminine",
-      number: "singular",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "τῶν",
-    a: {
-      gender: "feminine",
-      number: "plural",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "τοῦ",
-    a: {
-      gender: "neuter",
-      number: "singular",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "τῶν",
-    a: {
-      gender: "neuter",
-      number: "plural",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "τῷ",
-    a: {
-      gender: "masculine",
-      number: "singular",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "τοῖς",
-    a: {
-      gender: "masculine",
-      number: "plural",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "τῇ",
-    a: {
-      gender: "feminine",
-      number: "singular",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "ταῖς",
-    a: {
-      gender: "feminine",
-      number: "plural",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "τῷ",
-    a: {
-      gender: "neuter",
-      number: "singular",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "τοῖς",
-    a: {
-      gender: "neuter",
-      number: "plural",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "τόν",
-    a: {
-      gender: "masculine",
-      number: "singular",
-      cases: ["accusative"],
-    },
-  },
-  {
-    q: "τούς",
-    a: {
-      gender: "masculine",
-      number: "plural",
-      cases: ["accusative"],
-    },
-  },
-  {
-    q: "τήν",
-    a: {
-      gender: "feminine",
-      number: "singular",
-      cases: ["accusative"],
-    },
-  },
-  {
-    q: "τάς",
-    a: {
-      gender: "feminine",
-      number: "plural",
-      cases: ["accusative"],
     },
   },
   {
     q: "τό",
     a: {
-      gender: "neuter",
+      genders: ["neuter"],
       number: "singular",
       cases: ["nominative", "accusative"],
     },
@@ -194,9 +32,113 @@ const questions = ref([
   {
     q: "τά",
     a: {
-      gender: "neuter",
+      genders: ["neuter"],
       number: "plural",
       cases: ["nominative", "accusative"],
+    },
+  },
+  {
+    q: "ἡ",
+    a: {
+      genders: ["feminine"],
+      number: "singular",
+      cases: ["nominative"],
+    },
+  },
+  {
+    q: "αἱ",
+    a: {
+      genders: ["feminine"],
+      number: "plural",
+      cases: ["nominative"],
+    },
+  },
+  {
+    q: "τοῦ",
+    a: {
+      genders: ["masculine", "neuter"],
+      number: "singular",
+      cases: ["genitive"],
+    },
+  },
+  {
+    q: "τῶν",
+    a: {
+      genders: ["masculine", "feminine", "neuter"],
+      number: "plural",
+      cases: ["genitive"],
+    },
+  },
+  {
+    q: "τῆς",
+    a: {
+      genders: ["feminine"],
+      number: "singular",
+      cases: ["genitive"],
+    },
+  },
+  {
+    q: "τῷ",
+    a: {
+      genders: ["masculine", "neuter"],
+      number: "singular",
+      cases: ["dative"],
+    },
+  },
+  {
+    q: "τοῖς",
+    a: {
+      genders: ["masculine", "neuter"],
+      number: "plural",
+      cases: ["dative"],
+    },
+  },
+  {
+    q: "τῇ",
+    a: {
+      genders: ["feminine"],
+      number: "singular",
+      cases: ["dative"],
+    },
+  },
+  {
+    q: "ταῖς",
+    a: {
+      genders: ["feminine"],
+      number: "plural",
+      cases: ["dative"],
+    },
+  },
+  {
+    q: "τόν",
+    a: {
+      genders: ["masculine"],
+      number: "singular",
+      cases: ["accusative"],
+    },
+  },
+  {
+    q: "τούς",
+    a: {
+      genders: ["masculine"],
+      number: "plural",
+      cases: ["accusative"],
+    },
+  },
+  {
+    q: "τήν",
+    a: {
+      genders: ["feminine"],
+      number: "singular",
+      cases: ["accusative"],
+    },
+  },
+  {
+    q: "τάς",
+    a: {
+      genders: ["feminine"],
+      number: "plural",
+      cases: ["accusative"],
     },
   },
 ]);
@@ -231,13 +173,13 @@ function nextQuestion() {
 function checkAnswer(gender: string, number: string, case_: string) {
   const answer = questions.value[currentQuestionIndex.value].a;
   if (
-    gender === answer.gender &&
+    answer.genders.includes(gender) &&
     number === answer.number &&
     answer.cases.includes(case_)
   ) {
     success.value = true;
     // todo: add styling here
-    message.value = `Correct! This article is ${gender} ${number} ${case_}.`;
+    message.value = `Correct! This article is ${answer.genders.join("/")} ${number} ${answer.cases.join("/")}.`;
   } else {
     message.value = "Incorrect. Try again.";
   }
