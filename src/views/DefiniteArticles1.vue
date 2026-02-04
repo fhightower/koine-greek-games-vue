@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const success = ref(false);
 const message = ref("");
+const correctAnswer = ref<{ genders: string[]; number: string; cases: string[] } | null>(null);
 
 const questions = ref([
   {
@@ -166,9 +167,21 @@ function nextQuestion() {
   } else {
     success.value = false;
     message.value = "";
+    correctAnswer.value = null;
     currentQuestionIndex.value = newIndex;
   }
 }
+
+const correctCombinations = computed(() => {
+  if (!correctAnswer.value) return [];
+  const combos: { gender: string; number: string; case_: string }[] = [];
+  for (const g of correctAnswer.value.genders) {
+    for (const c of correctAnswer.value.cases) {
+      combos.push({ gender: g, number: correctAnswer.value.number, case_: c });
+    }
+  }
+  return combos;
+});
 
 function checkAnswer(gender: string, number: string, case_: string) {
   const answer = questions.value[currentQuestionIndex.value].a;
@@ -178,8 +191,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
     answer.cases.includes(case_)
   ) {
     success.value = true;
-    // todo: add styling here
-    message.value = `Correct! This article is ${answer.genders.join("/")} ${number} ${answer.cases.join("/")}.`;
+    correctAnswer.value = answer;
   } else {
     message.value = "Incorrect. Try again.";
   }
@@ -198,7 +210,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
           <td v-for="number in numbers" :key="number">
             <button
               class="button answer"
-              :class="[gender, case_]"
+              :class="[gender, case_, number]"
               v-on:click="checkAnswer(gender, number, case_)"
             >
               {{ gender }}<br />{{ number }}<br />{{ case_ }}
@@ -210,11 +222,25 @@ function checkAnswer(gender: string, number: string, case_: string) {
   </table>
 
   <div>
-    {{ message }}
-    <span v-if="success">
+    <template v-if="success && correctAnswer">
+      Correct! This article is
+      <template v-for="(combo, i) in correctCombinations" :key="i">
+        <template v-if="correctCombinations.length > 2 && i > 0 && i < correctCombinations.length - 1">, </template>
+        <template v-if="correctCombinations.length > 2 && i === correctCombinations.length - 1">, and </template>
+        <template v-if="correctCombinations.length === 2 && i === 1"> and </template>
+        <span
+          class="correctAnswer"
+          :class="[combo.gender, combo.case_, combo.number]"
+        >
+          {{ combo.gender }} {{ combo.number }} {{ combo.case_ }}
+        </span>
+      </template>
       <br />
       <button class="button" v-on:click="nextQuestion">Next ></button>
-    </span>
+    </template>
+    <template v-else>
+      {{ message }}
+    </template>
   </div>
 </template>
 
@@ -226,6 +252,10 @@ table {
 .button.answer {
   width: 7rem;
   height: 7rem;
+}
+
+.correctAnswer {
+  border-radius: 0.2rem;
 }
 
 .masculine {
@@ -254,5 +284,9 @@ table {
 
 .accusative {
   color: blue;
+}
+
+.plural {
+  font-weight: 500;
 }
 </style>
