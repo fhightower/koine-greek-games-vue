@@ -3,7 +3,11 @@ import { ref, computed } from "vue";
 
 const success = ref(false);
 const message = ref("");
-const correctAnswer = ref<{ genders: string[]; number: string; cases: string[] } | null>(null);
+const correctAnswer = ref<{
+  genders: string[];
+  number: string;
+  cases: string[];
+} | null>(null);
 
 const questions = ref([
   {
@@ -222,19 +226,37 @@ function checkAnswer(gender: string, number: string, case_: string) {
   </table>
 
   <div>
+    <br />
     <template v-if="success && correctAnswer">
-      Correct! This article is
-      <template v-for="(combo, i) in correctCombinations" :key="i">
-        <template v-if="correctCombinations.length > 2 && i > 0 && i < correctCombinations.length - 1">, </template>
-        <template v-if="correctCombinations.length > 2 && i === correctCombinations.length - 1">, and </template>
-        <template v-if="correctCombinations.length === 2 && i === 1"> and </template>
-        <span
-          class="correctAnswer"
-          :class="[combo.gender, combo.case_, combo.number]"
-        >
-          {{ combo.gender }} {{ combo.number }} {{ combo.case_ }}
-        </span>
-      </template>
+      <p>
+        Correct! This article is
+        <template v-for="(combo, i) in correctCombinations" :key="i">
+          <template
+            v-if="
+              correctCombinations.length > 2 &&
+              i > 0 &&
+              i < correctCombinations.length - 1
+            "
+            >,
+          </template>
+          <template
+            v-if="
+              correctCombinations.length > 2 &&
+              i === correctCombinations.length - 1
+            "
+            >, and
+          </template>
+          <template v-if="correctCombinations.length === 2 && i === 1">
+            and
+          </template>
+          <span
+            class="correctAnswer"
+            :class="[combo.gender, combo.case_, combo.number]"
+          >
+            {{ combo.gender }} {{ combo.number }} {{ combo.case_ }}
+          </span>
+        </template>
+      </p>
       <br />
       <button class="button" v-on:click="nextQuestion">Next ></button>
     </template>
@@ -256,6 +278,7 @@ table {
 
 .correctAnswer {
   border-radius: 0.2rem;
+  padding: 1rem;
 }
 
 .masculine {
