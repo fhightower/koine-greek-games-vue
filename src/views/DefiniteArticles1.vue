@@ -8,6 +8,13 @@ const correctAnswer = ref<{
   number: string;
   cases: string[];
 } | null>(null);
+const hadMiss = ref(false);
+const missedAnswers = ref<
+  {
+    article: string;
+    combos: { gender: string; number: string; case_: string }[];
+  }[]
+>([]);
 
 const questions = ref([
   {
@@ -172,6 +179,7 @@ function nextQuestion() {
     success.value = false;
     message.value = "";
     correctAnswer.value = null;
+    hadMiss.value = false;
     currentQuestionIndex.value = newIndex;
   }
 }
@@ -188,7 +196,8 @@ const correctCombinations = computed(() => {
 });
 
 function checkAnswer(gender: string, number: string, case_: string) {
-  const answer = questions.value[currentQuestionIndex.value].a;
+  const question = questions.value[currentQuestionIndex.value];
+  const answer = question.a;
   if (
     answer.genders.includes(gender) &&
     number === answer.number &&
@@ -196,7 +205,17 @@ function checkAnswer(gender: string, number: string, case_: string) {
   ) {
     success.value = true;
     correctAnswer.value = answer;
+    if (hadMiss.value) {
+      const combos: { gender: string; number: string; case_: string }[] = [];
+      for (const g of answer.genders) {
+        for (const c of answer.cases) {
+          combos.push({ gender: g, number: answer.number, case_: c });
+        }
+      }
+      missedAnswers.value.push({ article: question.q, combos });
+    }
   } else {
+    hadMiss.value = true;
     message.value = "Incorrect. Try again.";
   }
 }
@@ -210,7 +229,8 @@ function checkAnswer(gender: string, number: string, case_: string) {
   <table>
     <tbody>
       <tr v-for="case_ in cases" :key="case_">
-        <td v-for="gender in genders" :key="gender">
+        <template v-for="(gender, gi) in genders" :key="gender">
+          <td v-if="gi > 0" class="gender-gap"></td>
           <td v-for="number in numbers" :key="number">
             <button
               class="button answer"
@@ -220,7 +240,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
               {{ gender }}<br />{{ number }}<br />{{ case_ }}
             </button>
           </td>
-        </td>
+        </template>
       </tr>
     </tbody>
   </table>
@@ -264,6 +284,25 @@ function checkAnswer(gender: string, number: string, case_: string) {
       {{ message }}
     </template>
   </div>
+
+  <details v-if="missedAnswers.length" class="missed-answers">
+    <summary>Missed answers ({{ missedAnswers.length }})</summary>
+    <br />
+    <ul>
+      <li v-for="(entry, i) in missedAnswers" :key="i">
+        <b>{{ entry.article }}</b> —
+        <template v-for="(combo, j) in entry.combos" :key="j">
+          <template v-if="j > 0">, </template>
+          <span
+            class="correctAnswer"
+            :class="[combo.gender, combo.case_, combo.number]"
+          >
+            {{ combo.gender }} {{ combo.number }} {{ combo.case_ }}
+          </span>
+        </template>
+      </li>
+    </ul>
+  </details>
 </template>
 
 <style scoped>
@@ -311,5 +350,23 @@ table {
 
 .plural {
   font-weight: 500;
+}
+
+.gender-gap {
+  width: 0.25rem;
+}
+
+.missed-answers {
+  margin-top: 2rem;
+}
+
+.missed-answers summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.missed-answers ul {
+  margin-top: 0.5rem;
+  text-align: left;
 }
 </style>
