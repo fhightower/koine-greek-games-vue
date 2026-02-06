@@ -9,6 +9,7 @@ const correctAnswer = ref<{
   cases: string[];
 } | null>(null);
 const hadMiss = ref(false);
+const selectedAnswers = ref<Set<string>>(new Set());
 const missedAnswers = ref<
   {
     article: string;
@@ -180,8 +181,18 @@ function nextQuestion() {
     message.value = "";
     correctAnswer.value = null;
     hadMiss.value = false;
+    selectedAnswers.value = new Set();
     currentQuestionIndex.value = newIndex;
   }
+}
+
+const totalCorrectCombos = computed(() => {
+  const answer = questions.value[currentQuestionIndex.value].a;
+  return answer.genders.length * answer.cases.length;
+});
+
+function isSelected(gender: string, number: string, case_: string) {
+  return selectedAnswers.value.has(`${gender}-${number}-${case_}`);
 }
 
 const correctCombinations = computed(() => {
@@ -198,21 +209,35 @@ const correctCombinations = computed(() => {
 function checkAnswer(gender: string, number: string, case_: string) {
   const question = questions.value[currentQuestionIndex.value];
   const answer = question.a;
+  const key = `${gender}-${number}-${case_}`;
+
+  if (selectedAnswers.value.has(key)) {
+    return; // Already selected
+  }
+
   if (
     answer.genders.includes(gender) &&
     number === answer.number &&
     answer.cases.includes(case_)
   ) {
-    success.value = true;
-    correctAnswer.value = answer;
-    if (hadMiss.value) {
-      const combos: { gender: string; number: string; case_: string }[] = [];
-      for (const g of answer.genders) {
-        for (const c of answer.cases) {
-          combos.push({ gender: g, number: answer.number, case_: c });
+    selectedAnswers.value.add(key);
+    const total = totalCorrectCombos.value;
+    const found = selectedAnswers.value.size;
+
+    if (found === total) {
+      success.value = true;
+      correctAnswer.value = answer;
+      if (hadMiss.value) {
+        const combos: { gender: string; number: string; case_: string }[] = [];
+        for (const g of answer.genders) {
+          for (const c of answer.cases) {
+            combos.push({ gender: g, number: answer.number, case_: c });
+          }
         }
+        missedAnswers.value.push({ article: question.q, combos });
       }
-      missedAnswers.value.push({ article: question.q, combos });
+    } else {
+      message.value = `Correct! ${total - found} remaining.`;
     }
   } else {
     hadMiss.value = true;
@@ -234,7 +259,8 @@ function checkAnswer(gender: string, number: string, case_: string) {
           <td v-for="number in numbers" :key="number">
             <button
               class="button answer"
-              :class="[gender, case_, number]"
+              :class="[gender, case_, number, { selected: isSelected(gender, number, case_) }]"
+              :disabled="isSelected(gender, number, case_)"
               v-on:click="checkAnswer(gender, number, case_)"
             >
               {{ gender }}<br />{{ number }}<br />{{ case_ }}
@@ -315,9 +341,11 @@ table {
   height: 7rem;
 }
 
-.correctAnswer {
-  border-radius: 0.2rem;
-  padding: 1rem;
+.button.answer.selected {
+  outline: 3px solid #333;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
 }
 
 .masculine {
@@ -356,6 +384,11 @@ table {
   width: 0.25rem;
 }
 
+.correctAnswer {
+  border-radius: 0.2rem;
+  padding: 1rem;
+}
+
 .missed-answers {
   margin-top: 2rem;
 }
@@ -368,5 +401,9 @@ table {
 .missed-answers ul {
   margin-top: 0.5rem;
   text-align: left;
+}
+
+.missed-answers li {
+  margin-top: 2rem;
 }
 </style>
