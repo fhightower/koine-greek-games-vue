@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
 
 const success = ref(false);
 const message = ref("");
@@ -157,11 +158,6 @@ const questions = ref([
 ]);
 const currentQuestionIndex = ref(getRandomInt(questions.value.length));
 
-// Combine genders, numbers, and cases to create possible answers
-const genders = ["masculine", "feminine", "neuter"];
-const numbers = ["singular", "plural"];
-const cases = ["nominative", "genitive", "dative", "accusative"];
-
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max));
 }
@@ -190,10 +186,6 @@ const totalCorrectCombos = computed(() => {
   const answer = questions.value[currentQuestionIndex.value].a;
   return answer.genders.length * answer.cases.length;
 });
-
-function isSelected(gender: string, number: string, case_: string) {
-  return selectedAnswers.value.has(`${gender}-${number}-${case_}`);
-}
 
 const correctCombinations = computed(() => {
   if (!correctAnswer.value) return [];
@@ -251,25 +243,10 @@ function checkAnswer(gender: string, number: string, case_: string) {
     Select the case for this definite article: <b>{{ getQuestion() }}</b>
   </h3>
 
-  <table>
-    <tbody>
-      <tr v-for="case_ in cases" :key="case_">
-        <template v-for="(gender, gi) in genders" :key="gender">
-          <td v-if="gi > 0" class="gender-gap"></td>
-          <td v-for="number in numbers" :key="number">
-            <button
-              class="button answer"
-              :class="[gender, case_, number, { selected: isSelected(gender, number, case_) }]"
-              :disabled="isSelected(gender, number, case_)"
-              v-on:click="checkAnswer(gender, number, case_)"
-            >
-              {{ gender }}<br />{{ number }}<br />{{ case_ }}
-            </button>
-          </td>
-        </template>
-      </tr>
-    </tbody>
-  </table>
+  <GenderNumberCaseGrid
+    :selectedAnswers="selectedAnswers"
+    @select="checkAnswer"
+  />
 
   <div>
     <br />
@@ -332,58 +309,6 @@ function checkAnswer(gender: string, number: string, case_: string) {
 </template>
 
 <style scoped>
-table {
-  width: 100%;
-}
-
-.button.answer {
-  width: 7rem;
-  height: 7rem;
-}
-
-.button.answer.selected {
-  outline: 3px solid #333;
-  outline-offset: -3px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
-  opacity: 0.8;
-}
-
-.masculine {
-  background-color: lightblue;
-}
-
-.feminine {
-  background-color: lightpink;
-}
-
-.neuter {
-  background-color: lightgray;
-}
-
-.nominative {
-  color: black;
-}
-
-.genitive {
-  color: red;
-}
-
-.dative {
-  color: green;
-}
-
-.accusative {
-  color: blue;
-}
-
-.plural {
-  font-weight: 500;
-}
-
-.gender-gap {
-  width: 0.25rem;
-}
-
 .correctAnswer {
   border-radius: 0.2rem;
   padding: 1rem;

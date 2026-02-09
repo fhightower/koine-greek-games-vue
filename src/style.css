@@ -65,6 +65,38 @@ button:focus-visible {
   text-align: center;
 }
 
+.masculine {
+  background-color: lightblue;
+}
+
+.feminine {
+  background-color: lightpink;
+}
+
+.neuter {
+  background-color: lightgray;
+}
+
+.nominative {
+  color: black;
+}
+
+.genitive {
+  color: red;
+}
+
+.dative {
+  color: green;
+}
+
+.accusative {
+  color: blue;
+}
+
+.plural {
+  font-weight: 500;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
