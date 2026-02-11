@@ -1,6 +1,9 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from "vue";
+
+const props = defineProps<{
   selectedAnswers: Set<string>;
+  includeVocative?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -9,7 +12,10 @@ const emit = defineEmits<{
 
 const genders = ["masculine", "feminine", "neuter"];
 const numbers = ["singular", "plural"];
-const cases = ["nominative", "genitive", "dative", "accusative"];
+const baseCases = ["nominative", "genitive", "dative", "accusative"];
+const cases = computed(() =>
+  props.includeVocative ? [...baseCases, "vocative"] : baseCases
+);
 
 function isSelected(selectedAnswers: Set<string>, gender: string, number: string, case_: string) {
   return selectedAnswers.has(`${gender}-${number}-${case_}`);

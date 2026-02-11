@@ -27,6 +27,70 @@ const questions = ref([
       cases: ["nominative"],
     },
   },
+  {
+    q: "ἀνθρώπου",
+    a: {
+      genders: ["masculine"],
+      number: "singular",
+      cases: ["genitive"],
+    },
+  },
+  {
+    q: "ἀνθρώπῳ",
+    a: {
+      genders: ["masculine"],
+      number: "singular",
+      cases: ["dative"],
+    },
+  },
+  {
+    q: "ἄνθρωπον",
+    a: {
+      genders: ["masculine"],
+      number: "singular",
+      cases: ["accusative"],
+    },
+  },
+  {
+    q: "ἄνθρωπε",
+    a: {
+      genders: ["masculine"],
+      number: "singular",
+      cases: ["vocative"],
+    },
+  },
+  {
+    q: "ἄνθρωποι",
+    a: {
+      genders: ["masculine"],
+      number: "plural",
+      cases: ["nominative", "vocative"],
+    },
+  },
+  {
+    q: "ἀνθρώπων",
+    a: {
+      genders: ["masculine"],
+      number: "plural",
+      cases: ["genitive"],
+    },
+  },
+  {
+    q: "ἀνθρώποις",
+    a: {
+      genders: ["masculine"],
+      number: "plural",
+      cases: ["dative"],
+    },
+  },
+  {
+    q: "ἀνθρώπους",
+    a: {
+      genders: ["masculine"],
+      number: "plural",
+      cases: ["accusative"],
+    },
+  },
 ]);
 const currentQuestionIndex = ref(getRandomInt(questions.value.length));
 
@@ -119,6 +183,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
 
   <GenderNumberCaseGrid
     :selectedAnswers="selectedAnswers"
+    :includeVocative="true"
     @select="checkAnswer"
   />
 

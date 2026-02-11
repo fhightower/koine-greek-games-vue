@@ -93,6 +93,10 @@ button:focus-visible {
   color: blue;
 }
 
+.vocative {
+  color: purple;
+}
+
 .plural {
   font-weight: 500;
 }
