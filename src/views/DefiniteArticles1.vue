@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
+import AnswerFooter from "../components/AnswerFooter.vue";
 
 const success = ref(false);
 const message = ref("");
@@ -13,7 +14,7 @@ const hadMiss = ref(false);
 const selectedAnswers = ref<Set<string>>(new Set());
 const missedAnswers = ref<
   {
-    article: string;
+    question: string;
     combos: { gender: string; number: string; case_: string }[];
   }[]
 >([]);
@@ -163,7 +164,15 @@ function getRandomInt(max: number) {
 }
 
 function getQuestion() {
-  return questions.value[currentQuestionIndex.value].q;
+  return getCurrentQuestionOrThrow().q;
+}
+
+function getCurrentQuestionOrThrow() {
+  const question = questions.value[currentQuestionIndex.value];
+  if (!question) {
+    throw new Error("Invalid question index");
+  }
+  return question;
 }
 
 function nextQuestion() {
@@ -183,7 +192,7 @@ function nextQuestion() {
 }
 
 const totalCorrectCombos = computed(() => {
-  const answer = questions.value[currentQuestionIndex.value].a;
+  const answer = getCurrentQuestionOrThrow().a;
   return answer.genders.length * answer.cases.length;
 });
 
@@ -199,7 +208,7 @@ const correctCombinations = computed(() => {
 });
 
 function checkAnswer(gender: string, number: string, case_: string) {
-  const question = questions.value[currentQuestionIndex.value];
+  const question = getCurrentQuestionOrThrow();
   const answer = question.a;
   const key = `${gender}-${number}-${case_}`;
 
@@ -226,7 +235,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
             combos.push({ gender: g, number: answer.number, case_: c });
           }
         }
-        missedAnswers.value.push({ article: question.q, combos });
+        missedAnswers.value.push({ question: question.q, combos });
       }
     } else {
       message.value = `Correct! ${total - found} remaining.`;
@@ -248,64 +257,14 @@ function checkAnswer(gender: string, number: string, case_: string) {
     @select="checkAnswer"
   />
 
-  <div>
-    <br />
-    <template v-if="success && correctAnswer">
-      <p>
-        Correct! This article is
-        <template v-for="(combo, i) in correctCombinations" :key="i">
-          <template
-            v-if="
-              correctCombinations.length > 2 &&
-              i > 0 &&
-              i < correctCombinations.length - 1
-            "
-            >,
-          </template>
-          <template
-            v-if="
-              correctCombinations.length > 2 &&
-              i === correctCombinations.length - 1
-            "
-            >, and
-          </template>
-          <template v-if="correctCombinations.length === 2 && i === 1">
-            and
-          </template>
-          <span
-            class="correctAnswer"
-            :class="[combo.gender, combo.case_, combo.number]"
-          >
-            {{ combo.gender }} {{ combo.number }} {{ combo.case_ }}
-          </span>
-        </template>
-      </p>
-      <br />
-      <button class="button" v-on:click="nextQuestion">Next ></button>
-    </template>
-    <template v-else>
-      {{ message }}
-    </template>
-  </div>
-
-  <details v-if="missedAnswers.length" class="missed-answers">
-    <summary>Missed answers ({{ missedAnswers.length }})</summary>
-    <br />
-    <ul>
-      <li v-for="(entry, i) in missedAnswers" :key="i">
-        <b>{{ entry.article }}</b> —
-        <template v-for="(combo, j) in entry.combos" :key="j">
-          <template v-if="j > 0">, </template>
-          <span
-            class="correctAnswer"
-            :class="[combo.gender, combo.case_, combo.number]"
-          >
-            {{ combo.gender }} {{ combo.number }} {{ combo.case_ }}
-          </span>
-        </template>
-      </li>
-    </ul>
-  </details>
+  <AnswerFooter
+    :success="success"
+    :correctAnswer="correctAnswer"
+    :correctCombinations="correctCombinations"
+    :message="message"
+    :missedAnswers="missedAnswers"
+    @nextQuestion="nextQuestion"
+  />
 </template>
 
 <style scoped>
