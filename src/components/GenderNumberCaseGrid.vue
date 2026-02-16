@@ -33,7 +33,7 @@ function isSelected(selectedAnswers: Set<string>, gender: string, number: string
               class="button answer"
               :class="[gender, case_, number, { selected: isSelected(selectedAnswers, gender, number, case_) }]"
               :disabled="isSelected(selectedAnswers, gender, number, case_)"
-              v-on:click="emit('select', gender, number, case_)"
+              @click="emit('select', gender, number, case_)"
             >
               {{ gender }}<br />{{ number }}<br />{{ case_ }}
             </button>

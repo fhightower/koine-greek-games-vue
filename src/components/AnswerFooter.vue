@@ -1,11 +1,7 @@
 <script setup lang="ts">
-// todo: define these more centrally
-type Combination = { gender: string; number: string; case_: string };
-type Answer = { genders: string[], number: string, cases: string[] };
-type MissedAnswer = { question: string, combos: Combination[] }
+import type { Answer, Combination, MissedAnswer } from "../types/nominalForms";
 
 const props = defineProps<{
-  success: boolean;
   correctAnswer: Answer | null;
   correctCombinations: Combination[];
   message: string;
@@ -18,10 +14,9 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <!-- todo: do we need both success and correctAnswer? -->
   <div>
     <br />
-    <template v-if="success && correctAnswer">
+    <template v-if="correctAnswer">
       <p>
         Correct! This word is
         <template v-for="(combo, i) in correctCombinations" :key="i">
@@ -52,7 +47,7 @@ const emit = defineEmits<{
         </template>
       </p>
       <br />
-      <button class="button" v-on:click="emit('nextQuestion')">Next ></button>
+      <button class="button" @click="emit('nextQuestion')">Next ></button>
     </template>
     <template v-else>
       {{ message }}

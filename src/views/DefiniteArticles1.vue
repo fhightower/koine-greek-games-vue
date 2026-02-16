@@ -2,24 +2,15 @@
 import { ref, computed } from "vue";
 import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
 import AnswerFooter from "../components/AnswerFooter.vue";
+import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
 
-const success = ref(false);
 const message = ref("");
-const correctAnswer = ref<{
-  genders: string[];
-  number: string;
-  cases: string[];
-} | null>(null);
+const correctAnswer = ref<Answer | null>(null);
 const hadMiss = ref(false);
 const selectedAnswers = ref<Set<string>>(new Set());
-const missedAnswers = ref<
-  {
-    question: string;
-    combos: { gender: string; number: string; case_: string }[];
-  }[]
->([]);
+const missedAnswers = ref<MissedAnswer[]>([]);
 
-const questions = ref([
+const questions = ref<Question[]>([
   {
     q: "ὁ",
     a: {
@@ -182,7 +173,6 @@ function nextQuestion() {
   if (newIndex === currentQuestionIndex.value) {
     nextQuestion();
   } else {
-    success.value = false;
     message.value = "";
     correctAnswer.value = null;
     hadMiss.value = false;
@@ -198,7 +188,7 @@ const totalCorrectCombos = computed(() => {
 
 const correctCombinations = computed(() => {
   if (!correctAnswer.value) return [];
-  const combos: { gender: string; number: string; case_: string }[] = [];
+  const combos: Combination[] = [];
   for (const g of correctAnswer.value.genders) {
     for (const c of correctAnswer.value.cases) {
       combos.push({ gender: g, number: correctAnswer.value.number, case_: c });
@@ -226,10 +216,9 @@ function checkAnswer(gender: string, number: string, case_: string) {
     const found = selectedAnswers.value.size;
 
     if (found === total) {
-      success.value = true;
       correctAnswer.value = answer;
       if (hadMiss.value) {
-        const combos: { gender: string; number: string; case_: string }[] = [];
+        const combos: Combination[] = [];
         for (const g of answer.genders) {
           for (const c of answer.cases) {
             combos.push({ gender: g, number: answer.number, case_: c });
@@ -258,7 +247,6 @@ function checkAnswer(gender: string, number: string, case_: string) {
   />
 
   <AnswerFooter
-    :success="success"
     :correctAnswer="correctAnswer"
     :correctCombinations="correctCombinations"
     :message="message"
