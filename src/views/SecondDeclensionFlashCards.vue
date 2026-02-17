@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
 import AnswerFooter from "../components/AnswerFooter.vue";
 import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
+import { getRandomInt } from "../utils/random";
 
 const message = ref("");
 const correctAnswer = ref<Answer | null>(null);
@@ -85,11 +86,6 @@ const questions = ref<Question[]>([
   },
 ]);
 const currentQuestionIndex = ref(getRandomInt(questions.value.length));
-
-// todo: move this to utils
-function getRandomInt(max: number) {
-  return Math.floor(Math.random() * Math.floor(max));
-}
 
 function getQuestion() {
   return getCurrentQuestionOrThrow().q;
