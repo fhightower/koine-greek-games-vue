@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
 import AnswerFooter from "../components/AnswerFooter.vue";
+import NominalFormsCheatSheetModal from "../components/NominalFormsCheatSheetModal.vue";
 import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
 import { getRandomInt } from "../utils/random";
 
@@ -194,6 +195,19 @@ const correctCombinations = computed(() => {
   return combos;
 });
 
+const cheatSheetEntries = computed(() =>
+  questions.value.map((question) => ({
+    question: question.q,
+    combos: question.a.genders.flatMap((gender) =>
+      question.a.cases.map((case_) => ({
+        gender,
+        number: question.a.number,
+        case_,
+      }))
+    ),
+  }))
+);
+
 function checkAnswer(gender: string, number: string, case_: string) {
   const question = getCurrentQuestionOrThrow();
   const answer = question.a;
@@ -237,7 +251,6 @@ function checkAnswer(gender: string, number: string, case_: string) {
   <h3>
     Select the case for this definite article: <b>{{ getQuestion() }}</b>
   </h3>
-
   <GenderNumberCaseGrid
     :selectedAnswers="selectedAnswers"
     @select="checkAnswer"
@@ -250,6 +263,15 @@ function checkAnswer(gender: string, number: string, case_: string) {
     :missedAnswers="missedAnswers"
     @nextQuestion="nextQuestion"
   />
+
+  <br>
+
+  <NominalFormsCheatSheetModal
+    title="Definite Article Cheat Sheet"
+    buttonLabel="Show Cheat Sheet"
+    :entries="cheatSheetEntries"
+  />
+
 </template>
 
 <style scoped>
