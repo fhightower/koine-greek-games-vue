@@ -4,12 +4,14 @@ import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
 import AnswerFooter from "../components/AnswerFooter.vue";
 import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
 import { getRandomInt } from "../utils/random";
+import { recordQuestionOutcome } from "../utils/performanceStats";
 
 const message = ref("");
 const correctAnswer = ref<Answer | null>(null);
 const hadMiss = ref(false);
 const selectedAnswers = ref<Set<string>>(new Set());
 const missedAnswers = ref<MissedAnswer[]>([]);
+const gameId = "second-declension-flash-cards";
 
 const questions = ref<Question[]>([
   {
@@ -149,6 +151,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
     const found = selectedAnswers.value.size;
 
     if (found === total) {
+      recordQuestionOutcome(gameId, question.q, !hadMiss.value);
       correctAnswer.value = answer;
       if (hadMiss.value) {
         const combos: Combination[] = [];
