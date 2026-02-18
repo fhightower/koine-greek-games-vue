@@ -5,6 +5,7 @@ import AnswerFooter from "../components/AnswerFooter.vue";
 import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
 import { getRandomInt } from "../utils/random";
 import { recordQuestionOutcome } from "../utils/performanceStats";
+import { secondDeclensionWords, type WordEntry } from "../data/secondDeclensionWords";
 
 const message = ref("");
 const correctAnswer = ref<Answer | null>(null);
@@ -13,81 +14,30 @@ const selectedAnswers = ref<Set<string>>(new Set());
 const missedAnswers = ref<MissedAnswer[]>([]);
 const gameId = "second-declension-flash-cards";
 
-const questions = ref<Question[]>([
-  {
-    q: "ἄνθρωπος",
-    a: {
-      genders: ["masculine"],
-      number: "singular",
-      cases: ["nominative"],
-    },
-  },
-  {
-    q: "ἀνθρώπου",
-    a: {
-      genders: ["masculine"],
-      number: "singular",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "ἀνθρώπῳ",
-    a: {
-      genders: ["masculine"],
-      number: "singular",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "ἄνθρωπον",
-    a: {
-      genders: ["masculine"],
-      number: "singular",
-      cases: ["accusative"],
-    },
-  },
-  {
-    q: "ἄνθρωπε",
-    a: {
-      genders: ["masculine"],
-      number: "singular",
-      cases: ["vocative"],
-    },
-  },
-  {
-    q: "ἄνθρωποι",
-    a: {
-      genders: ["masculine"],
-      number: "plural",
-      cases: ["nominative", "vocative"],
-    },
-  },
-  {
-    q: "ἀνθρώπων",
-    a: {
-      genders: ["masculine"],
-      number: "plural",
-      cases: ["genitive"],
-    },
-  },
-  {
-    q: "ἀνθρώποις",
-    a: {
-      genders: ["masculine"],
-      number: "plural",
-      cases: ["dative"],
-    },
-  },
-  {
-    q: "ἀνθρώπους",
-    a: {
-      genders: ["masculine"],
-      number: "plural",
-      cases: ["accusative"],
-    },
-  },
-]);
-const currentQuestionIndex = ref(getRandomInt(questions.value.length));
+const selectedWord = ref<WordEntry | null>(null);
+const questions = ref<Question[]>([]);
+const currentQuestionIndex = ref(0);
+
+function selectWord(word: WordEntry) {
+  selectedWord.value = word;
+  questions.value = word.questions;
+  currentQuestionIndex.value = getRandomInt(questions.value.length);
+  message.value = "";
+  correctAnswer.value = null;
+  hadMiss.value = false;
+  selectedAnswers.value = new Set();
+  missedAnswers.value = [];
+}
+
+function changeWord() {
+  selectedWord.value = null;
+  questions.value = [];
+  message.value = "";
+  correctAnswer.value = null;
+  hadMiss.value = false;
+  selectedAnswers.value = new Set();
+  missedAnswers.value = [];
+}
 
 function getQuestion() {
   return getCurrentQuestionOrThrow().q;
@@ -173,24 +123,105 @@ function checkAnswer(gender: string, number: string, case_: string) {
 </script>
 
 <template>
-  <h3>
-    Select the gender, number, and case for this word:
-    <b>{{ getQuestion() }}</b>
-  </h3>
+  <div v-if="!selectedWord" class="word-picker">
+    <h3>Choose a word to practice:</h3>
+    <ul class="word-list">
+      <li v-for="word in secondDeclensionWords" :key="word.nominativeSingular">
+        <button class="word-btn" @click="selectWord(word)">
+          <span class="greek">{{ word.nominativeSingular }}</span>
+          <span class="meaning">{{ word.meaning }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
 
-  <GenderNumberCaseGrid
-    :selectedAnswers="selectedAnswers"
-    :includeVocative="true"
-    @select="checkAnswer"
-  />
+  <template v-else>
+    <h3>
+      Select the gender, number, and case for this word:
+      <b>{{ getQuestion() }}</b>
+    </h3>
+    <div class="word-label">
+      Practicing: <b>{{ selectedWord.nominativeSingular }}</b> ({{ selectedWord.meaning }})
+      <button class="change-btn" @click="changeWord">Change word</button>
+    </div>
 
-  <AnswerFooter
-    :correctAnswer="correctAnswer"
-    :correctCombinations="correctCombinations"
-    :message="message"
-    :missedAnswers="missedAnswers"
-    @nextQuestion="nextQuestion"
-  />
+    <GenderNumberCaseGrid
+      :selectedAnswers="selectedAnswers"
+      :includeVocative="true"
+      @select="checkAnswer"
+    />
+
+    <AnswerFooter
+      :correctAnswer="correctAnswer"
+      :correctCombinations="correctCombinations"
+      :message="message"
+      :missedAnswers="missedAnswers"
+      @nextQuestion="nextQuestion"
+    />
+  </template>
 </template>
 
-<style scoped></style>
+<style scoped>
+.word-picker {
+  max-width: 480px;
+}
+
+.word-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.word-btn {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.word-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.greek {
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+
+.meaning {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.word-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.change-btn {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+  background: none;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.change-btn:hover {
+  background-color: #f0f0f0;
+}
+</style>
