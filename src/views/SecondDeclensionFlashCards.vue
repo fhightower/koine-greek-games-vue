@@ -136,14 +136,15 @@ function checkAnswer(gender: string, number: string, case_: string) {
   </div>
 
   <template v-else>
-    <h3>
-      Select the gender, number, and case for this word:
-      <b>{{ getQuestion() }}</b>
-    </h3>
     <div class="word-label">
       Practicing: <b>{{ selectedWord.nominativeSingular }}</b> ({{ selectedWord.meaning }})
       <button class="change-btn" @click="changeWord">Change word</button>
     </div>
+
+    <h3>
+      Select the gender, number, and case for this word:
+      <b>{{ getQuestion() }}</b>
+    </h3>
 
     <GenderNumberCaseGrid
       :selectedAnswers="selectedAnswers"
@@ -206,10 +207,11 @@ function checkAnswer(gender: string, number: string, case_: string) {
 .word-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
   font-size: 0.9rem;
-  color: #444;
+  color: #ddd;
 }
 
 .change-btn {
