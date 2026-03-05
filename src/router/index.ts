@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import DefiniteArticles1 from '../views/DefiniteArticles1.vue'
+import FirstDeclensionFlashCards from '../views/FirstDeclensionFlashCards.vue'
 import Home from '../views/Home.vue'
 import SecondDeclensionFlashCards from '../views/SecondDeclensionFlashCards.vue'
 
@@ -23,6 +24,12 @@ const router = createRouter({
       name: 'Second Declension Flash Cards',
       component: SecondDeclensionFlashCards,
       meta: { description: 'Second Declension Flash Cards', isGame: true },
+    },
+    {
+      path: '/first-declension-flash-cards',
+      name: 'First Declension Flash Cards',
+      component: FirstDeclensionFlashCards,
+      meta: { description: 'First Declension Flash Cards', isGame: true },
     },
   ],
 })
