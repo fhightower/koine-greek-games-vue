@@ -1,13 +1,25 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  --app-text: rgba(255, 255, 255, 0.87);
-  --app-bg: #242424;
+  /* Type */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'EB Garamond', Georgia, serif;
 
-  color-scheme: light dark;
+  /* Parchment palette */
+  --app-bg: #faf8f3;
+  --app-bg-edge: #f3efe5;
+  --app-text: #2b2520;
+  --app-muted: #6f6657;
+  --app-line: #e3dccc;
+  --accent: #9c3b2e;
+  --accent-soft: #c96a52;
+
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 400;
+
   color: var(--app-text);
   background-color: var(--app-bg);
+  color-scheme: light;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,45 +27,54 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--app-bg) 40%, var(--app-bg-edge) 100%);
 }
 
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--accent-soft);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
 h1 {
   font-size: 3.2em;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--app-line);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-family: var(--font-body);
+  color: var(--app-text);
+  background-color: #fff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--accent);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 2px;
 }
 
 .card {
@@ -67,6 +88,7 @@ button:focus-visible {
   text-align: center;
 }
 
+/* --- Declension game utility classes --- */
 .masculine {
   background-color: lightblue;
 }
@@ -101,19 +123,4 @@ button:focus-visible {
 
 .plural {
   font-weight: 500;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --app-text: #213547;
-    --app-bg: #ffffff;
-    color: var(--app-text);
-    background-color: var(--app-bg);
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }

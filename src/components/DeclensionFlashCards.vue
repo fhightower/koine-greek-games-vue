@@ -239,7 +239,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
   gap: 0.75rem;
   margin-bottom: 1rem;
   font-size: 0.9rem;
-  color: #ddd;
+  color: var(--app-muted);
 }
 
 .change-btn {
