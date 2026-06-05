@@ -4,6 +4,7 @@ import DefiniteArticles1 from '../views/DefiniteArticles1.vue'
 import FirstDeclensionFlashCards from '../views/FirstDeclensionFlashCards.vue'
 import Home from '../views/Home.vue'
 import SecondDeclensionFlashCards from '../views/SecondDeclensionFlashCards.vue'
+import VerbEndingsLuo from '../views/VerbEndingsLuo.vue'
 import VerbVoice from '../views/VerbVoice.vue'
 
 const router = createRouter({
@@ -37,6 +38,12 @@ const router = createRouter({
       name: 'Verb Voice',
       component: VerbVoice,
       meta: { description: 'Active, Middle, or Passive?', isGame: true },
+    },
+    {
+      path: '/luo-endings',
+      name: 'Luo Endings',
+      component: VerbEndingsLuo,
+      meta: { description: 'λύω Middle/Passive Endings', isGame: true },
     },
   ],
 })

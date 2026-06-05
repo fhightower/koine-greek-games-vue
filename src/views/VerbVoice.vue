@@ -15,6 +15,12 @@ const choices: { value: Voice; label: string }[] = [
 const currentIndex = ref(getRandomInt(verbVoiceSentences.length))
 const selected = ref<Voice | null>(null)
 
+const missedAnswers = ref<{ sentence: string; voice: Voice }[]>([])
+
+function voiceLabel(voice: Voice) {
+  return choices.find(c => c.value === voice)?.label ?? voice
+}
+
 const current = computed(() => {
   const sentence = verbVoiceSentences[currentIndex.value]
   if (!sentence) {
@@ -31,7 +37,11 @@ function pick(voice: Voice) {
     return // lock in the first answer
   }
   selected.value = voice
-  recordQuestionOutcome(gameId, current.value.sentence, voice === current.value.voice)
+  const correct = voice === current.value.voice
+  recordQuestionOutcome(gameId, current.value.sentence, correct)
+  if (!correct) {
+    missedAnswers.value.push({ sentence: current.value.sentence, voice: current.value.voice })
+  }
 }
 
 function nextQuestion() {
@@ -83,6 +93,16 @@ function buttonClass(voice: Voice) {
       <p class="voice__why">{{ current.why }}</p>
       <button class="next" @click="nextQuestion">Next →</button>
     </div>
+
+    <details v-if="missedAnswers.length" class="missed">
+      <summary>Missed answers ({{ missedAnswers.length }})</summary>
+      <ul>
+        <li v-for="(m, i) in missedAnswers" :key="i">
+          <span class="missed__sentence">{{ m.sentence }}</span> —
+          <b>{{ voiceLabel(m.voice) }}</b>
+        </li>
+      </ul>
+    </details>
   </main>
 </template>
 
@@ -202,6 +222,32 @@ function buttonClass(voice: Voice) {
 .next:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(156, 59, 46, 0.18);
+}
+
+.missed {
+  margin-top: 2.5rem;
+  text-align: left;
+}
+
+.missed summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--app-text);
+}
+
+.missed ul {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.missed li {
+  margin-top: 0.6rem;
+  line-height: 1.5;
+  color: var(--app-text);
+}
+
+.missed__sentence {
+  font-style: italic;
 }
 
 @media (prefers-reduced-motion: reduce) {
