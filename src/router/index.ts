@@ -4,6 +4,7 @@ import DefiniteArticles1 from '../views/DefiniteArticles1.vue'
 import FirstDeclensionFlashCards from '../views/FirstDeclensionFlashCards.vue'
 import Home from '../views/Home.vue'
 import SecondDeclensionFlashCards from '../views/SecondDeclensionFlashCards.vue'
+import VerbVoice from '../views/VerbVoice.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -30,6 +31,12 @@ const router = createRouter({
       name: 'First Declension Flash Cards',
       component: FirstDeclensionFlashCards,
       meta: { description: 'First Declension Flash Cards', isGame: true },
+    },
+    {
+      path: '/verb-voice',
+      name: 'Verb Voice',
+      component: VerbVoice,
+      meta: { description: 'Active, Middle, or Passive?', isGame: true },
     },
   ],
 })
