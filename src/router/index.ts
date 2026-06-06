@@ -1,11 +1,22 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 
 import DefiniteArticles1 from '../views/DefiniteArticles1.vue'
 import FirstDeclensionFlashCards from '../views/FirstDeclensionFlashCards.vue'
 import Home from '../views/Home.vue'
 import SecondDeclensionFlashCards from '../views/SecondDeclensionFlashCards.vue'
+import TranslationGame from '../components/TranslationGame.vue'
 import VerbEndingsLuo from '../views/VerbEndingsLuo.vue'
 import VerbVoice from '../views/VerbVoice.vue'
+import { translationLessons } from '../data/translationGames'
+
+// One translation game per Machen lesson with a Greek Exercise I section.
+const translationRoutes: RouteRecordRaw[] = translationLessons.map(lesson => ({
+  path: `/translate/${lesson.slug}`,
+  name: lesson.title,
+  component: TranslationGame,
+  props: { gameId: lesson.gameId, title: lesson.title, sentences: lesson.sentences },
+  meta: { description: `${lesson.title} — Translate the Greek`, isGame: true },
+}))
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -45,6 +56,7 @@ const router = createRouter({
       component: VerbEndingsLuo,
       meta: { description: 'λύω Middle/Passive Endings', isGame: true },
     },
+    ...translationRoutes,
   ],
 })
 
