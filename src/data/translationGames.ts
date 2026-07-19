@@ -57,11 +57,11 @@ export const translationLessons: TranslationLesson[] = [
       { greek: 'δοῦλος γράφει λόγους.', english: 'A servant writes words.' },
       { greek: 'ἀπόστολοι διδάσκουσιν ἄνθρωπον.', english: 'Apostles teach a man.' },
       { greek: 'ἀπόστολοι λύουσι δούλους.', english: 'Apostles loose servants.' },
-      { greek: 'δοῦλος λαμβάνει δῶρα.', english: 'A servant receives gifts.' },
-      { greek: 'λαμβάνουσιν υἱοὶ οἴκους.', english: 'Sons receive houses.' },
+      { greek: 'δοῦλος λαμβάνει δῶρα.', english: 'A servant takes gifts.' },
+      { greek: 'λαμβάνουσιν υἱοὶ οἴκους.', english: 'Sons take houses.' },
       {
         greek: 'δούλους καὶ οἴκους λαμβάνουσιν ἀδελφοί.',
-        english: 'Brothers receive servants and houses.',
+        english: 'Brothers take servants and houses.',
       },
       { greek: 'βλέπομεν ἱερὰ καὶ ἀποστόλους.', english: 'We see temples and apostles.' },
       { greek: 'δούλους βλέπετε καὶ ἀδελφούς.', english: 'You see servants and brothers.' },
@@ -77,12 +77,12 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'δοῦλοι γινώσκουσι νόμον καὶ λαμβάνουσι δῶρα.',
-        english: 'Servants know a law and receive gifts.',
+        english: 'Servants know a law and take gifts.',
       },
       { greek: 'γινώσκουσιν ἄνθρωποι θάνατον.', english: 'Men know death.' },
       {
         greek: 'λαμβάνομεν δῶρα καὶ ἔχομεν ἀδελφούς.',
-        english: 'We receive gifts and have brothers.',
+        english: 'We take gifts and have brothers.',
       },
       {
         greek: 'ἀποστόλοις καὶ δούλοις λέγομεν λόγους θανάτου.',
@@ -94,7 +94,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'γράφει ἀπόστολος νόμον καὶ λέγει λόγους υἱοῖς δούλου.',
-        english: 'An apostle writes a law and says words to the sons of a servant.',
+        english: 'An apostle writes a law and says words to sons of a servant.',
       },
       {
         greek: 'υἱοὶ ἀποστόλων λέγουσι λόγους καὶ λύουσι δούλους.',
@@ -116,7 +116,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ἀπόστολοι λαμβάνουσι δούλους καὶ δῶρα καὶ ἐκκλησίας.',
-        english: 'Apostles receive servants and gifts and churches.',
+        english: 'Apostles take servants and gifts and churches.',
       },
       {
         greek: 'ἀπόστολοι καὶ ἐκκλησίαι βλέπουσι ζωὴν καὶ θάνατον.',
@@ -176,17 +176,17 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ἡ κακὴ καρδία τῶν ἀνθρώπων γινώσκει θάνατον.',
-        english: 'The evil heart of men knows death.',
+        english: 'The bad heart of men knows death.',
       },
       {
         greek: 'οἱ ἀπόστολοι βλέπουσι τοὺς μικροὺς οἴκους καὶ τὰς κακὰς ὁδούς.',
-        english: 'The apostles see the little houses and the evil ways.',
+        english: 'The apostles see the little houses and the bad ways.',
       },
       {
         greek: 'οἱ δοῦλοι οἱ κακοὶ λύουσι τὸν οἶκον τοῦ ἀποστόλου.',
-        english: 'The evil servants destroy the house of the apostle.',
+        english: 'The bad servants destroy the house of the apostle.',
       },
-      { greek: 'οἱ κακοὶ λύουσι τὸ ἱερόν.', english: 'The evil men destroy the temple.' },
+      { greek: 'οἱ κακοὶ λύουσι τὸ ἱερόν.', english: 'The bad men destroy the temple.' },
       {
         greek: 'ὁ κύριος τῆς ζωῆς ἐγείρει τοὺς νεκρούς.',
         english: 'The Lord of life raises the dead.',
@@ -197,11 +197,11 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'οἱ δίκαιοι λαμβάνουσι τὰ δῶρα τοῦ κυρίου τὰ καλά.',
-        english: 'The righteous receive the good gifts of the Lord.',
+        english: 'The righteous take the good gifts of the Lord.',
       },
       {
         greek: 'ὁ κακὸς βλέπει τὴν ἔρημον καὶ τοὺς ἐσχάτους οἴκους.',
-        english: 'The evil man sees the desert and the last houses.',
+        english: 'The bad man sees the desert and the last houses.',
       },
       {
         greek: 'πρῶτοι οἱ δοῦλοι· ἔσχατοι οἱ κύριοι.',
@@ -214,7 +214,7 @@ export const translationLessons: TranslationLesson[] = [
       { greek: 'τοὺς πιστοὺς βλέπει ὁ πιστός.', english: 'The faithful man sees the faithful.' },
       {
         greek: 'ἔσχατοι οἱ δοῦλοι οἱ κακοί· πρῶτοι οἱ υἱοὶ οἱ ἀγαθοί.',
-        english: 'The evil servants are last; the good sons are first.',
+        english: 'The bad servants are last; the good sons are first.',
       },
       {
         greek: 'ὁ υἱὸς τοῦ ἐσχάτου ἀδελφοῦ βλέπει τὰς καλὰς ἐκκλησίας τοῦ κυρίου.',
@@ -222,7 +222,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ἄλλην παραβολὴν λέγομεν τῇ κακῇ βασιλείᾳ.',
-        english: 'We say another parable to the evil kingdom.',
+        english: 'We say another parable to the bad kingdom.',
       },
       {
         greek: 'πρώτη ἡ ἐκκλησία· ἐσχάτη ἡ ἄλλη βασιλεία.',
@@ -234,7 +234,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ὁ ἀγαθὸς γράφει ἀγαθά· ὁ κακὸς κακά.',
-        english: 'The good man writes good things; the evil man evil things.',
+        english: 'The good man writes good things; the bad man bad things.',
       },
       {
         greek: 'ἀγαθὸς ὁ δοῦλος καὶ λέγει καλά.',
@@ -242,7 +242,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ἡ ἀλήθεια πιστὴ καὶ ἡ ὥρα κακή.',
-        english: 'The truth is faithful and the hour is evil.',
+        english: 'The truth is faithful and the hour is bad.',
       },
     ],
   },
@@ -258,7 +258,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'οἱ κακοὶ βάλλουσιν λίθους εἰς τὸν οἶκον τῶν μαθητῶν.',
-        english: 'The evil men throw stones into the house of the disciples.',
+        english: 'The bad men throw stones into the house of the disciples.',
       },
       {
         greek: 'ὁ θεὸς πέμπει τοὺς ἀγγέλους εἰς τὸν κόσμον.',
@@ -274,7 +274,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'λαμβάνετε τὰ καλὰ δῶρα ἀπὸ τῶν τέκνων.',
-        english: 'You receive the good gifts from the children.',
+        english: 'You take the good gifts from the children.',
       },
       { greek: 'ἄγομεν τὰ τέκνα ἐκ τῶν οἴκων.', english: 'We lead the children out of the houses.' },
       {
@@ -321,13 +321,13 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'διὰ τὴν βασιλείαν τοῦ θεοῦ φέρομεν τὰ κακά.',
-        english: 'On account of the kingdom of God we bear the evil things.',
+        english: 'On account of the kingdom of God we bear the bad things.',
       },
       {
         greek: 'διὰ τὰς ψυχὰς τῶν ἀδελφῶν βλέπει κακά.',
-        english: 'On account of the souls of the brothers he sees evil things.',
+        english: 'On account of the souls of the brothers he sees bad things.',
       },
-      { greek: 'καλὸς ὁ οὐρανός· κακὸς ὁ κόσμος.', english: 'Heaven is good; the world is evil.' },
+      { greek: 'καλὸς ὁ οὐρανός· κακὸς ὁ κόσμος.', english: 'Heaven is good; the world is bad.' },
     ],
   },
   {
@@ -350,7 +350,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'δι’ ἐμὲ βλέπεις σὺ τὸν θάνατον, σοὶ δὲ ἐγὼ λέγω λόγους κακούς.',
-        english: 'On account of me you see death, but to you I say evil words.',
+        english: 'On account of me you see death, but to you I say bad words.',
       },
       {
         greek: 'διὰ σοῦ ἄγει ὁ θεὸς τοὺς πιστοὺς εἰς τὴν βασιλείαν αὐτοῦ καὶ δι’ αὐτῶν τοὺς ἄλλους.',
@@ -371,7 +371,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ὁ ἀπόστολος πιστός ἐστιν, οἱ δὲ δοῦλοι αὐτοῦ κακοί.',
-        english: 'The apostle is faithful, but his servants are evil.',
+        english: 'The apostle is faithful, but his servants are bad.',
       },
       {
         greek: 'ἡ ἐκκλησία πιστή ἐστιν, ἡμεῖς δὲ βλέπομεν αὐτήν.',
@@ -388,7 +388,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'ἀφ’ ὑμῶν λαμβάνει ὁ ἀδελφός μου δῶρα καλά, καὶ πέμπει αὐτὰ πρός με διὰ τῶν δούλων αὐτοῦ.',
-        english: 'From you my brother receives good gifts, and sends them to me through his servants.',
+        english: 'From you my brother takes good gifts, and sends them to me through his servants.',
       },
       {
         greek: 'γινώσκομεν τὴν ὁδόν, καὶ δι’ αὐτῆς ἄγομέν σε εἰς τὸν οἶκον ἡμῶν.',
@@ -400,7 +400,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'μετὰ τὰς ἡμέρας τὰς κακὰς βλέπομεν τὴν βασιλείαν τοῦ κυρίου ἡμῶν.',
-        english: 'After the evil days we see the kingdom of our Lord.',
+        english: 'After the bad days we see the kingdom of our Lord.',
       },
       { greek: 'μεθ’ ἡμῶν βλέπεις αὐτόν.', english: 'With us you see him.' },
       { greek: 'μεθ’ ὑμῶν ἐσμεν ἐν τοῖς οἴκοις ὑμῶν.', english: 'With you we are in your houses.' },
@@ -422,7 +422,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'νῦν λαμβάνω αὐτὸς τὸ αὐτὸ εὐαγγέλιον ἀπὸ τοῦ κυρίου μου.',
-        english: 'Now I myself receive the same gospel from my Lord.',
+        english: 'Now I myself take the same gospel from my Lord.',
       },
       {
         greek: 'οὗτος βλέπει ἐκεῖνον καὶ κρίνει αὐτόν.',
@@ -446,7 +446,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'λαμβάνομεν ταῦτα τὰ δῶρα ἀπὸ τοῦ αὐτοῦ καὶ βλέπομεν αὐτόν.',
-        english: 'We receive these gifts from the same man and see him.',
+        english: 'We take these gifts from the same man and see him.',
       },
       {
         greek: 'αὐτὸς βαπτίζεις ἐκεῖνον καὶ εἶ ἀδελφὸς αὐτοῦ.',
@@ -487,7 +487,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'μετὰ τῶν πιστῶν ἔχομεν ἐπαγγελίας ἀγαθάς, οἱ δὲ πονηροὶ βλέπουσιν ἡμέρας κακάς.',
-        english: 'With the faithful we have good promises, but the evil see evil days.',
+        english: 'With the faithful we have good promises, but the evil see bad days.',
       },
     ],
   },
@@ -499,11 +499,11 @@ export const translationLessons: TranslationLesson[] = [
     sentences: [
       {
         greek: 'λύονται οὗτοι οἱ δοῦλοι ὑπὸ τοῦ κυρίου.',
-        english: 'These servants are being loosed by the lord.',
+        english: 'These servants are being loosed by the Lord.',
       },
       {
         greek: 'τῷ λόγῳ τοῦ κυρίου ἀγόμεθα εἰς τὴν ἐκκλησίαν τοῦ θεοῦ.',
-        english: 'By the word of the lord we are being led into the church of God.',
+        english: 'By the word of the Lord we are being led into the church of God.',
       },
       {
         greek: 'οὐκ ἀκούετε τῆς φωνῆς τοῦ προφήτου, ἀλλ’ ἐξέρχεσθε ἐκ τοῦ οἴκου αὐτοῦ.',
@@ -511,7 +511,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'τῷ λόγῳ αὐτοῦ τοῦ κυρίου γίνεσθε μαθηταὶ αὐτοῦ.',
-        english: 'By the word of the lord himself you are becoming his disciples.',
+        english: 'By the word of the Lord himself you are becoming his disciples.',
       },
       {
         greek: 'ἐκεῖνοι οἱ ἀγαθοὶ διδάσκαλοι οὐκ εἰσέρχονται εἰς τοὺς οἴκους τῶν ἁμαρτωλῶν.',
@@ -533,7 +533,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'εἰρήνην ἔχει ἡ ἐκκλησία, ὅτι σώζεται ὑπὸ τοῦ κυρίου αὐτῆς.',
-        english: 'The church has peace, because it is being saved by its lord.',
+        english: 'The church has peace, because it is being saved by its Lord.',
       },
       {
         greek: 'οὐκ ἀποκρινόμεθα τῷ ἀποστόλῳ ὅτι οὐ γινώσκομεν αὐτόν.',
@@ -547,7 +547,7 @@ export const translationLessons: TranslationLesson[] = [
         greek:
           'οὐ πορεύῃ ἐν τῇ ὁδῷ τῇ κακῇ, ἀλλὰ σώζῃ ἀπὸ τῶν ἁμαρτιῶν σου καὶ οἱ ἀδελφοί σου ἀκούουσι τῆς φωνῆς τοῦ κυρίου.',
         english:
-          'You are not going in the evil way, but you are being saved from your sins, and your brothers hear the voice of the lord.',
+          'You are not going in the bad way, but you are being saved from your sins, and your brothers hear the voice of the Lord.',
       },
       {
         greek: 'μετὰ τῶν ἀδελφῶν αὐτοῦ ἄγεται εἰς τὴν βασιλείαν τοῦ θεοῦ τῇ φωνῇ τῶν ἀποστόλων.',
@@ -556,7 +556,7 @@ export const translationLessons: TranslationLesson[] = [
       },
       {
         greek: 'οὐ γίνῃ μαθητὴς τοῦ κυρίου, ὅτι οὐκ εἰσέρχῃ εἰς τὴν ἐκκλησίαν αὐτοῦ.',
-        english: 'You are not becoming a disciple of the lord, because you do not enter into his church.',
+        english: 'You are not becoming a disciple of the Lord, because you do not enter into his church.',
       },
     ],
   },
