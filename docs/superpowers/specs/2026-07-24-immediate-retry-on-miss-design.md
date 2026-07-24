@@ -1,4 +1,4 @@
-# Immediate Retry on a Missed Translation
+# Retrying and Reviewing Missed Translations
 
 Date: 2026-07-24
 
@@ -8,57 +8,85 @@ Date: 2026-07-24
 the one just shown. A sentence graded "Missed it" is therefore the one sentence
 guaranteed *not* to come next. The player logs the miss, sees the model translation
 for a moment, and then the sentence disappears back into the pool. Nothing brings it
-back while the correction is still fresh.
+back while the correction is still fresh, and nothing checks later whether the
+correction stuck.
 
 ## Scope
 
-In `TranslationGame` only — the Greek → English exercises — a sentence graded
-"Missed it" becomes the next sentence, and keeps coming back until the player grades
-it "I got it".
+In `TranslationGame` only — the Greek → English exercises. A missed sentence is
+retried immediately until the player claims it, then returns three more times at
+widening intervals.
 
-Out of scope: reworking missed questions into the queue on a delay rather than
-immediately, and the grid-based games (`DefiniteArticles1`, `DeclensionFlashCards`,
+Out of scope: the grid-based games (`DefiniteArticles1`, `DeclensionFlashCards`,
 `VerbVoice`, and the rest), which already let the player keep guessing until the
-answer is found. Both remain in `todo`.
+answer is found, and clicking words within a phrase to mark what was wrong. Both
+remain in `todo`.
 
 ## Behavior
 
-The retry repeats without limit. Missing a sentence four times in a row shows it four
-more times; only "I got it" releases it. The player is never carried past a sentence
-they have not yet claimed.
+**Immediate retry.** A sentence graded "Missed it" becomes the next question and
+repeats without limit. Missing it four times in a row shows it four more times; only
+"I got it" releases it. The player is never carried past a sentence they have not yet
+claimed.
 
-A banner above the Greek marks a repeat as deliberate:
+**Spaced returns.** Claiming a retried sentence schedules it to reappear 2, 5, and 10
+questions later. Widening gaps are what turn a correction into recall; a sentence the
+player got wrong once and then saw only once more has not really been tested.
+
+A sentence answered correctly on the first try schedules nothing — there is nothing to
+reinforce.
+
+**Missing a scheduled return restarts the whole cycle.** Any returns still pending for
+that sentence are dropped, it is retried until claimed, and a fresh 2/5/10 schedule is
+laid down. A sentence still being missed on its third showing is not partway through
+learning; it is unlearned.
+
+Two banners above the Greek distinguish a deliberate repeat from an unlucky draw:
 
 > Try again — you missed this one.
 
-Without it, a repeated sentence is indistinguishable from an unlucky random draw.
+> Back again — you missed this earlier.
 
 ## Implementation
 
-One new piece of state in `TranslationGame.vue`:
+State added to `TranslationGame.vue`:
 
 ```ts
-const retryIndex = ref<number | null>(null)
+const REVIEW_SPACING = [2, 5, 10]
+type ScheduledReview = { index: number; dueIn: number }
+
+const retryIndex = ref<number | null>(null)   // repeats until claimed
+const reviews = ref<ScheduledReview[]>([])    // spaced returns, counting down
+const showingReview = ref(false)
 ```
 
-Because the retry repeats until correct, at most one sentence is ever pending, so a
-single ref is sufficient. A queue would be the right shape for the deferred-requeue
-todo, but nothing today would read past its first element.
+The two are kept separate because they behave differently: the retry blocks progress,
+the reviews wait their turn. `retrying` is derived — `retryIndex === currentIndex` —
+which is unambiguous because a pending retry is always the question on screen.
 
 Control flow:
 
 | Event | Effect |
 | --- | --- |
-| `grade(false)` | Record the outcome, add to `missed`, set `retryIndex = currentIndex`, advance. |
-| `grade(true)` | Record the outcome, set `retryIndex = null`, advance. |
-| `nextQuestion()` | If `retryIndex !== null`, set `currentIndex` to it and skip the random draw. Otherwise draw at random as today. |
-| `gameId` watcher | Clear `retryIndex` along with the other per-game state. |
+| `grade(false)` | Record, add to `missed`, drop pending reviews for this index, set `retryIndex = currentIndex`, advance. |
+| `grade(true)` while retrying | Record, schedule 2/5/10 for this index, clear `retryIndex`, advance. |
+| `grade(true)` otherwise | Record, advance. Nothing scheduled. |
+| `nextQuestion()` | Serve `retryIndex` if set. Otherwise tick every `dueIn` down one, serve the first review at `dueIn <= 0`, else draw at random as today. |
+| `gameId` watcher | Clear `retryIndex`, `reviews`, and `showingReview` with the rest of the per-game state. |
 
-The random branch keeps its existing "don't repeat the current index" loop. The retry
-branch deliberately bypasses that loop — repeating is the whole point.
+A blocked retry deliberately does *not* tick the countdowns. However many attempts a
+sentence takes, the whole episode occupies one slot in the spacing — otherwise a
+player who struggles badly would burn through the 2/5/10 gaps without seeing anything
+in between.
 
-`attempt` and `revealed` reset on a retry exactly as they do on a fresh question, so
-the player re-types the translation rather than editing the wrong one in place.
+The random branch keeps its existing "don't repeat the current index" loop. Both the
+retry and review branches bypass it — repeating is the point.
+
+`attempt` and `revealed` reset on every advance, retry and review included, so the
+player re-types the translation rather than editing the wrong one in place.
+
+The queue is self-limiting: a sentence's pending returns are dropped before it is
+rescheduled, so `reviews` never exceeds three entries per distinct sentence.
 
 ## Recording
 
@@ -86,3 +114,12 @@ cannot distinguish a retry from the only available draw.
   counts every attempt.
 - The `missed` summary lists a repeatedly-missed sentence once.
 - Switching `gameId` mid-retry clears the pending retry.
+- A claimed sentence returns after exactly one other question, under the review banner.
+- Three returns are scheduled per miss, and none for a first-try correct answer.
+- Missing a scheduled return yields three fresh returns, not the two left over.
+- Switching `gameId` clears the pending returns.
+
+Scheduled returns are counted by the review banner rather than by matching the Greek,
+since a random draw can land on the same sentence by chance and would make the count
+flaky. The suite was run repeatedly to confirm the randomness does not leak into the
+assertions.

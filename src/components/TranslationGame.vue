@@ -10,11 +10,22 @@ const props = defineProps<{
   sentences: TranslationSentence[]
 }>()
 
+// How many questions after a correction each scheduled return is due.
+const REVIEW_SPACING = [2, 5, 10]
+
+type ScheduledReview = { index: number; dueIn: number }
+
 const currentIndex = ref(getRandomInt(props.sentences.length))
 const attempt = ref('')
 const revealed = ref(false)
 
 const missed = ref<TranslationSentence[]>([])
+
+// The sentence to repeat until it is graded correct, and the spaced returns waiting
+// their turn afterwards.
+const retryIndex = ref<number | null>(null)
+const reviews = ref<ScheduledReview[]>([])
+const showingReview = ref(false)
 
 const current = computed(() => {
   const sentence = props.sentences[currentIndex.value]
@@ -23,6 +34,8 @@ const current = computed(() => {
   }
   return sentence
 })
+
+const retrying = computed(() => retryIndex.value === currentIndex.value)
 
 function reveal() {
   if (revealed.value) {
@@ -39,20 +52,68 @@ function grade(gotIt: boolean) {
     given: attempt.value.trim(),
     answer: current.value.english,
   })
-  if (!gotIt) {
-    missed.value.push({ greek: current.value.greek, english: current.value.english })
+
+  if (gotIt) {
+    // Only a sentence that was just being retried has earned spaced returns; one
+    // answered right on the first try has nothing to reinforce.
+    if (retrying.value) {
+      scheduleReviews(currentIndex.value)
+      retryIndex.value = null
+    }
+  } else {
+    rememberMiss()
+    // Any returns still pending are stale — the sentence goes back to square one and
+    // is rescheduled once it is corrected.
+    reviews.value = reviews.value.filter((review) => review.index !== currentIndex.value)
+    retryIndex.value = currentIndex.value
   }
+
   nextQuestion()
 }
 
+function rememberMiss() {
+  if (missed.value.some((sentence) => sentence.greek === current.value.greek)) {
+    return
+  }
+  missed.value.push({ greek: current.value.greek, english: current.value.english })
+}
+
+function scheduleReviews(index: number) {
+  for (const dueIn of REVIEW_SPACING) {
+    reviews.value.push({ index, dueIn })
+  }
+}
+
 function nextQuestion() {
+  attempt.value = ''
+  revealed.value = false
+
+  // A blocked retry does not advance the schedule: however many attempts it takes,
+  // the sentence occupies one slot in the spacing counted by the reviews below.
+  if (retryIndex.value !== null) {
+    currentIndex.value = retryIndex.value
+    showingReview.value = false
+    return
+  }
+
+  for (const review of reviews.value) {
+    review.dueIn -= 1
+  }
+
+  const dueAt = reviews.value.findIndex((review) => review.dueIn <= 0)
+  if (dueAt !== -1) {
+    const [due] = reviews.value.splice(dueAt, 1)
+    currentIndex.value = due!.index
+    showingReview.value = true
+    return
+  }
+
+  showingReview.value = false
   let newIndex = getRandomInt(props.sentences.length)
   while (newIndex === currentIndex.value && props.sentences.length > 1) {
     newIndex = getRandomInt(props.sentences.length)
   }
   currentIndex.value = newIndex
-  attempt.value = ''
-  revealed.value = false
 }
 
 // Reset when switching between lessons that reuse this component instance.
@@ -63,6 +124,9 @@ watch(
     attempt.value = ''
     revealed.value = false
     missed.value = []
+    retryIndex.value = null
+    reviews.value = []
+    showingReview.value = false
   }
 )
 </script>
@@ -71,6 +135,9 @@ watch(
   <main class="trans">
     <h2 class="trans__title">{{ title }}</h2>
     <h3 class="trans__prompt">Translate the Greek into English</h3>
+
+    <p v-if="retrying" class="trans__retry">Try again — you missed this one.</p>
+    <p v-else-if="showingReview" class="trans__review">Back again — you missed this earlier.</p>
 
     <p class="trans__greek">{{ current.greek }}</p>
 
@@ -130,6 +197,26 @@ watch(
   font-size: 1.05rem;
   font-style: italic;
   letter-spacing: 0.06em;
+  color: var(--app-muted);
+}
+
+.trans__retry,
+.trans__review {
+  margin: 0 0 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  display: inline-block;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.trans__retry {
+  background: #f6e4e0;
+  color: var(--accent);
+}
+
+.trans__review {
+  background: #eee9dd;
   color: var(--app-muted);
 }
 
