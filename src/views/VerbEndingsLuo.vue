@@ -54,7 +54,13 @@ function pick(person: Person, number: GrammaticalNumber) {
   }
   selected.value = { person, number }
   const correct = person === current.value.person && number === current.value.number
-  recordQuestionOutcome(gameId, current.value.form, correct)
+  recordQuestionOutcome({
+    gameId,
+    question: current.value.form,
+    correct,
+    given: `${personLabel(person)} ${number}`,
+    answer: `${personLabel(current.value.person)} ${current.value.number}`,
+  })
   if (!correct) {
     missedAnswers.value.push({
       form: current.value.form,

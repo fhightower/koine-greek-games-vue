@@ -5,11 +5,14 @@ import AnswerFooter from "../components/AnswerFooter.vue";
 import NominalFormsCheatSheetModal from "../components/NominalFormsCheatSheetModal.vue";
 import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
 import { getRandomInt } from "../utils/random";
+import { answerText, comboText } from "../utils/nominalAnswerText";
 import { recordQuestionOutcome } from "../utils/performanceStats";
 
 const message = ref("");
 const correctAnswer = ref<Answer | null>(null);
 const hadMiss = ref(false);
+// Wrong cells clicked before finding them all, for the miss log.
+const wrongPicks = ref<string[]>([]);
 const selectedAnswers = ref<Set<string>>(new Set());
 const missedAnswers = ref<MissedAnswer[]>([]);
 const gameId = "definite-articles-1";
@@ -176,6 +179,7 @@ function nextQuestion() {
     message.value = "";
     correctAnswer.value = null;
     hadMiss.value = false;
+    wrongPicks.value = [];
     selectedAnswers.value = new Set();
     currentQuestionIndex.value = newIndex;
   }
@@ -229,7 +233,13 @@ function checkAnswer(gender: string, number: string, case_: string) {
     const found = selectedAnswers.value.size;
 
     if (found === total) {
-      recordQuestionOutcome(gameId, question.q, !hadMiss.value);
+      recordQuestionOutcome({
+        gameId,
+        question: question.q,
+        correct: !hadMiss.value,
+        given: wrongPicks.value.join(", "),
+        answer: answerText(answer),
+      });
       correctAnswer.value = answer;
       if (hadMiss.value) {
         const combos: Combination[] = [];
@@ -245,6 +255,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
     }
   } else {
     hadMiss.value = true;
+    wrongPicks.value.push(comboText(gender, number, case_));
     message.value = "Incorrect. Try again.";
   }
 }

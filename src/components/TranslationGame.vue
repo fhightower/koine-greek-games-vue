@@ -32,7 +32,13 @@ function reveal() {
 }
 
 function grade(gotIt: boolean) {
-  recordQuestionOutcome(props.gameId, current.value.greek, gotIt)
+  recordQuestionOutcome({
+    gameId: props.gameId,
+    question: current.value.greek,
+    correct: gotIt,
+    given: attempt.value.trim(),
+    answer: current.value.english,
+  })
   if (!gotIt) {
     missed.value.push({ greek: current.value.greek, english: current.value.english })
   }

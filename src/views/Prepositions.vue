@@ -40,6 +40,8 @@ const prepositions: Preposition[] = [
 const currentIndex = ref(getRandomInt(prepositions.length))
 const selectedCorrect = ref<Set<Case>>(new Set())
 const hadMiss = ref(false)
+// Wrong cases clicked before finding them all, for the miss log.
+const wrongPicks = ref<Case[]>([])
 const done = ref(false)
 const message = ref('')
 
@@ -68,7 +70,13 @@ function pick(case_: Case) {
     if (selectedCorrect.value.size === correctCases.value.length) {
       done.value = true
       message.value = ''
-      recordQuestionOutcome(gameId, current.value.word, !hadMiss.value)
+      recordQuestionOutcome({
+        gameId,
+        question: current.value.word,
+        correct: !hadMiss.value,
+        given: wrongPicks.value.join(', '),
+        answer: correctCases.value.join(', '),
+      })
       if (hadMiss.value) {
         missedAnswers.value.push({ word: current.value.word, uses: current.value.uses })
       }
@@ -77,6 +85,7 @@ function pick(case_: Case) {
     }
   } else {
     hadMiss.value = true
+    wrongPicks.value.push(case_)
     message.value = 'Incorrect. Try again.'
   }
 }
@@ -99,6 +108,7 @@ function nextQuestion() {
   currentIndex.value = newIndex
   selectedCorrect.value = new Set()
   hadMiss.value = false
+  wrongPicks.value = []
   done.value = false
   message.value = ''
 }

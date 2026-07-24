@@ -38,7 +38,13 @@ function pick(voice: Voice) {
   }
   selected.value = voice
   const correct = voice === current.value.voice
-  recordQuestionOutcome(gameId, current.value.sentence, correct)
+  recordQuestionOutcome({
+    gameId,
+    question: current.value.sentence,
+    correct,
+    given: voiceLabel(voice),
+    answer: voiceLabel(current.value.voice),
+  })
   if (!correct) {
     missedAnswers.value.push({ sentence: current.value.sentence, voice: current.value.voice })
   }

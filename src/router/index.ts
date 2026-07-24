@@ -10,6 +10,7 @@ import VerbEndingsLuoActive from '../views/VerbEndingsLuoActive.vue'
 import VerbVoice from '../views/VerbVoice.vue'
 import AdjectiveAgathos from '../views/AdjectiveAgathos.vue'
 import Prepositions from '../views/Prepositions.vue'
+import Review from '../views/Review.vue'
 import EimiForms from '../views/EimiForms.vue'
 import Demonstratives from '../views/Demonstratives.vue'
 import { translationLessons } from '../data/translationGames'
@@ -92,6 +93,12 @@ const router = createRouter({
       meta: { description: 'λύω Middle/Passive Endings', isGame: true },
     },
     ...translationRoutes,
+    {
+      path: '/review',
+      name: 'Review',
+      component: Review,
+      meta: { description: 'Review Missed Answers' },
+    },
   ],
 })
 

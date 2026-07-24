@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { loadMisses } from '../utils/missLog'
 
 const router = useRouter()
 const games = router.getRoutes().filter(route => route.meta?.isGame)
+const missCount = loadMisses().length
 </script>
 
 <template>
@@ -24,6 +26,12 @@ const games = router.getRoutes().filter(route => route.meta?.isGame)
         <span class="game__arrow" aria-hidden="true">→</span>
       </router-link>
     </nav>
+
+    <footer class="home__foot">
+      <router-link to="/review" class="review-link">
+        Missed answers<span v-if="missCount"> ({{ missCount }})</span>
+      </router-link>
+    </footer>
   </main>
 </template>
 
@@ -111,6 +119,23 @@ const games = router.getRoutes().filter(route => route.meta?.isGame)
 }
 .game:hover .game__arrow {
   transform: translateX(4px);
+}
+
+.home__foot {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--app-line);
+}
+
+.review-link {
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: var(--app-muted);
+  text-decoration: none;
+}
+
+.review-link:hover {
+  color: var(--accent);
 }
 
 @keyframes rise {

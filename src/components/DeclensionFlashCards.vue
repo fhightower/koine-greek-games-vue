@@ -4,6 +4,7 @@ import AnswerFooter from "../components/AnswerFooter.vue";
 import GenderNumberCaseGrid from "../components/GenderNumberCaseGrid.vue";
 import NominalFormsCheatSheetModal from "../components/NominalFormsCheatSheetModal.vue";
 import type { Answer, Combination, MissedAnswer, Question } from "../types/nominalForms";
+import { answerText, comboText } from "../utils/nominalAnswerText";
 import { recordQuestionOutcome } from "../utils/performanceStats";
 import { getRandomInt } from "../utils/random";
 
@@ -29,6 +30,8 @@ const props = defineProps<{
 const message = ref("");
 const correctAnswer = ref<Answer | null>(null);
 const hadMiss = ref(false);
+// Wrong cells clicked before finding them all, for the miss log.
+const wrongPicks = ref<string[]>([]);
 const selectedAnswers = ref<Set<string>>(new Set());
 const missedAnswers = ref<MissedAnswer[]>([]);
 
@@ -43,6 +46,7 @@ function selectWord(word: WordEntry) {
   message.value = "";
   correctAnswer.value = null;
   hadMiss.value = false;
+  wrongPicks.value = [];
   selectedAnswers.value = new Set();
   missedAnswers.value = [];
 }
@@ -53,6 +57,7 @@ function changeWord() {
   message.value = "";
   correctAnswer.value = null;
   hadMiss.value = false;
+  wrongPicks.value = [];
   selectedAnswers.value = new Set();
   missedAnswers.value = [];
 }
@@ -119,7 +124,13 @@ function checkAnswer(gender: string, number: string, case_: string) {
     const found = selectedAnswers.value.size;
 
     if (found === total) {
-      recordQuestionOutcome(props.gameId, question.q, !hadMiss.value);
+      recordQuestionOutcome({
+        gameId: props.gameId,
+        question: question.q,
+        correct: !hadMiss.value,
+        given: wrongPicks.value.join(", "),
+        answer: answerText(answer),
+      });
       correctAnswer.value = answer;
       if (hadMiss.value) {
         const combos: Combination[] = [];
@@ -135,6 +146,7 @@ function checkAnswer(gender: string, number: string, case_: string) {
     }
   } else {
     hadMiss.value = true;
+    wrongPicks.value.push(comboText(gender, number, case_));
     message.value = "Incorrect. Try again.";
   }
 }
