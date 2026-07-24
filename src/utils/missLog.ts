@@ -53,7 +53,9 @@ export function loadMisses(): MissEntry[] {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    return parsed.filter(isMissEntry);
+    // Normalized on read too, so the newest-first invariant does not depend on
+    // whoever wrote the file having sorted it.
+    return normalize(parsed.filter(isMissEntry));
   } catch {
     return [];
   }

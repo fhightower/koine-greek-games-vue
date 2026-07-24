@@ -24,11 +24,3 @@ const TRANSLATION_GAME_LABELS: Record<string, string> = Object.fromEntries(
 export function gameLabel(gameId: string): string {
   return GRAMMAR_GAME_LABELS[gameId] ?? TRANSLATION_GAME_LABELS[gameId] ?? gameId;
 }
-
-/** Every known game id with its label, for filter dropdowns. */
-export function knownGames(): { id: string; label: string }[] {
-  return [
-    ...Object.entries(GRAMMAR_GAME_LABELS),
-    ...Object.entries(TRANSLATION_GAME_LABELS),
-  ].map(([id, label]) => ({ id, label }));
-}

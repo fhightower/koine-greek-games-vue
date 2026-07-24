@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { gameLabel } from "../utils/gameLabels";
 import { MISS_LOG_LIMIT, clearMisses, loadMisses, type MissEntry } from "../utils/missLog";
 import { clearAnswerStats } from "../utils/performanceStats";
+import { relativeTime } from "../utils/relativeTime";
 import {
   buildProgressExport,
   exportFileName,
@@ -38,18 +39,6 @@ function refresh() {
 function say(message: string, isError = false) {
   notice.value = message;
   noticeIsError.value = isError;
-}
-
-function relativeTime(at: number): string {
-  const seconds = Math.round((Date.now() - at) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} hr ago`;
-  const days = Math.round(hours / 24);
-  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
-  return new Date(at).toLocaleDateString();
 }
 
 function exportProgress() {

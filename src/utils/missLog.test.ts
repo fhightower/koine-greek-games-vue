@@ -60,6 +60,16 @@ describe("loadMisses", () => {
     expect(loadMisses()).toEqual([]);
   });
 
+  test("returns newest first even if the stored log is out of order", () => {
+    // A hand-edited or hand-assembled file should still read correctly.
+    window.localStorage.setItem(
+      "koine:miss-log:v1",
+      JSON.stringify([makeMiss({ question: "older", at: 1000 }), makeMiss({ question: "newer", at: 2000 })]),
+    );
+
+    expect(loadMisses().map((miss) => miss.question)).toEqual(["newer", "older"]);
+  });
+
   test("ignores entries that are not shaped like a miss", () => {
     window.localStorage.setItem(
       "koine:miss-log:v1",
