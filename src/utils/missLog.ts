@@ -76,6 +76,35 @@ export function mergeMisses(mine: MissEntry[], theirs: MissEntry[]): MissEntry[]
   return normalize([...mine, ...theirs]);
 }
 
+export type MissedQuestion = { gameId: string; question: string; answer: string };
+
+/**
+ * Distinct missed questions for the given games, newest miss first. One entry per
+ * `gameId|question`; the answer comes from that question's most recent miss. Feeds
+ * the focus drill, which asks each of these once.
+ */
+export function missedQuestions(gameIds: string[]): MissedQuestion[] {
+  const wanted = new Set(gameIds);
+  const seen = new Set<string>();
+  const questions: MissedQuestion[] = [];
+
+  // loadMisses is already newest-first, so the first time a question is seen is its
+  // most recent miss — exactly the answer to show.
+  for (const miss of loadMisses()) {
+    if (!wanted.has(miss.gameId)) {
+      continue;
+    }
+    const key = `${miss.gameId}|${miss.question}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    questions.push({ gameId: miss.gameId, question: miss.question, answer: miss.answer });
+  }
+
+  return questions;
+}
+
 export function clearMisses() {
   if (typeof window === "undefined") {
     return;

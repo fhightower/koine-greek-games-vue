@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { gameLabel } from "../utils/gameLabels";
-import { MISS_LOG_LIMIT, clearMisses, loadMisses, type MissEntry } from "../utils/missLog";
+import {
+  MISS_LOG_LIMIT,
+  clearMisses,
+  loadMisses,
+  missedQuestions,
+  type MissEntry,
+} from "../utils/missLog";
 import { clearAnswerStats } from "../utils/performanceStats";
 import { relativeTime } from "../utils/relativeTime";
 import {
@@ -12,6 +18,7 @@ import {
 
 const misses = ref<MissEntry[]>(loadMisses());
 const selectedGame = ref("all");
+const focusPick = ref<string[]>([]);
 const notice = ref("");
 const noticeIsError = ref(false);
 const confirmingClear = ref(false);
@@ -22,6 +29,27 @@ const gameOptions = computed(() => {
   const ids = [...new Set(misses.value.map((miss) => miss.gameId))];
   return ids.map((id) => ({ id, label: gameLabel(id) })).sort((a, b) => a.label.localeCompare(b.label));
 });
+
+// Each game the player can focus on, with the number of distinct questions the drill
+// would ask — a question missed repeatedly counts once.
+const focusGames = computed(() =>
+  gameOptions.value.map((game) => ({ ...game, count: missedQuestions([game.id]).length })),
+);
+
+const allFocused = computed(
+  () => focusGames.value.length > 0 && focusPick.value.length === focusGames.value.length,
+);
+
+const focusCount = computed(() => missedQuestions(focusPick.value).length);
+
+// Sorted so the same selection always produces the same link, whatever order the
+// boxes were ticked in.
+const focusHref = computed(() => `#/focus?games=${[...focusPick.value].sort().join(",")}`);
+
+function toggleAllFocus(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+  focusPick.value = checked ? focusGames.value.map((game) => game.id) : [];
+}
 
 const visibleMisses = computed(() =>
   selectedGame.value === "all"
@@ -34,6 +62,8 @@ function refresh() {
   if (selectedGame.value !== "all" && !gameOptions.value.some((g) => g.id === selectedGame.value)) {
     selectedGame.value = "all";
   }
+  // Drop any focus picks whose game no longer has a miss (after a clear or import).
+  focusPick.value = focusPick.value.filter((id) => gameOptions.value.some((g) => g.id === id));
 }
 
 function say(message: string, isError = false) {
@@ -126,6 +156,30 @@ function clearEverything() {
     <p v-if="notice" class="review__notice" :class="{ 'is-error': noticeIsError }">
       {{ notice }}
     </p>
+
+    <section v-if="focusGames.length" class="focus-panel">
+      <div class="focus-panel__head">
+        <h3 class="focus-panel__title">Focus on missed questions</h3>
+        <label class="focus-all">
+          <input type="checkbox" :checked="allFocused" @change="toggleAllFocus" />
+          Select all
+        </label>
+      </div>
+
+      <ul class="focus-games">
+        <li v-for="game in focusGames" :key="game.id" class="focus-game">
+          <label>
+            <input type="checkbox" v-model="focusPick" :value="game.id" />
+            <span class="focus-game__label">{{ game.label }}</span>
+            <span class="focus-game__count">{{ game.count }}</span>
+          </label>
+        </li>
+      </ul>
+
+      <a v-if="focusPick.length" class="btn focus-launch" :href="focusHref">
+        Focus on {{ focusCount }} question{{ focusCount === 1 ? "" : "s" }}
+      </a>
+    </section>
 
     <p v-if="!misses.length" class="review__empty">
       Nothing missed yet. Play a game and anything you get wrong lands here.
@@ -264,6 +318,73 @@ function clearEverything() {
 }
 
 .review__notice.is-error {
+  color: var(--accent);
+}
+
+.focus-panel {
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.1rem 1.2rem;
+  background: #fffdf8;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+}
+
+.focus-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.focus-panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.focus-all {
+  font-size: 0.85rem;
+  color: var(--app-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.focus-games {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.focus-game label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+
+.focus-game__label {
+  flex: 1;
+}
+
+.focus-game__count {
+  font-size: 0.8rem;
+  color: var(--app-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-launch {
+  display: inline-block;
+  margin-top: 1rem;
+  text-decoration: none;
+  border-color: var(--accent);
   color: var(--accent);
 }
 

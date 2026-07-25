@@ -4,6 +4,7 @@ import {
   clearMisses,
   loadMisses,
   mergeMisses,
+  missedQuestions,
   recordMiss,
   type MissEntry,
 } from "./missLog";
@@ -121,5 +122,47 @@ describe("clearMisses", () => {
     clearMisses();
 
     expect(loadMisses()).toEqual([]);
+  });
+});
+
+describe("missedQuestions", () => {
+  test("returns distinct missed questions for the chosen games", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "passive", at: 1000 }));
+    recordMiss(makeMiss({ gameId: "prepositions", question: "ἐν", answer: "dative", at: 2000 }));
+
+    expect(missedQuestions(["verb-voice"])).toEqual([
+      { gameId: "verb-voice", question: "λύεται", answer: "passive" },
+    ]);
+  });
+
+  test("collapses repeated misses of the same question into one card", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "passive", at: 1000 }));
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "passive", at: 3000 }));
+
+    expect(missedQuestions(["verb-voice"])).toHaveLength(1);
+  });
+
+  test("takes the answer from the most recent miss of a question", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "old", at: 1000 }));
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "new", at: 3000 }));
+
+    expect(missedQuestions(["verb-voice"])[0]?.answer).toBe("new");
+  });
+
+  test("spans several games when several are chosen, newest miss first", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "passive", at: 1000 }));
+    recordMiss(makeMiss({ gameId: "prepositions", question: "ἐν", answer: "dative", at: 2000 }));
+
+    expect(missedQuestions(["verb-voice", "prepositions"]).map((q) => q.question)).toEqual([
+      "ἐν",
+      "λύεται",
+    ]);
+  });
+
+  test("is empty for games with no misses or for an empty selection", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", answer: "passive", at: 1000 }));
+
+    expect(missedQuestions(["unknown-game"])).toEqual([]);
+    expect(missedQuestions([])).toEqual([]);
   });
 });

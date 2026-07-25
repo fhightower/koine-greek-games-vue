@@ -112,3 +112,80 @@ describe("Review", () => {
     expect(wrapper.get(".review__empty").text()).toContain("Nothing missed yet");
   });
 });
+
+describe("Review focus panel", () => {
+  function focusRow(wrapper: ReturnType<typeof mount>, label: string) {
+    const row = wrapper.findAll(".focus-game").find((r) => r.text().includes(label));
+    if (!row) {
+      throw new Error(`No focus row for "${label}"`);
+    }
+    return row;
+  }
+
+  test("lists each game with a miss and its distinct-question count", () => {
+    seed([
+      { gameId: "verb-voice", question: "one" },
+      { gameId: "verb-voice", question: "two" },
+      { gameId: "prepositions", question: "ἀπό" },
+    ]);
+
+    const wrapper = mount(Review);
+
+    expect(focusRow(wrapper, "Verb Voice").text()).toContain("2");
+    expect(focusRow(wrapper, "Prepositions").text()).toContain("1");
+  });
+
+  test("counts a repeatedly-missed question once", () => {
+    seed([
+      { gameId: "verb-voice", question: "same", at: 1000 },
+      { gameId: "verb-voice", question: "same", at: 2000 },
+    ]);
+
+    const wrapper = mount(Review);
+
+    expect(focusRow(wrapper, "Verb Voice").text()).toContain("1");
+  });
+
+  test("has no focus launch until a game is checked", () => {
+    seed([{ gameId: "verb-voice", question: "one" }]);
+
+    const wrapper = mount(Review);
+
+    expect(wrapper.find("a.focus-launch").exists()).toBe(false);
+  });
+
+  test("links the launch to the checked games with the question total", async () => {
+    seed([
+      { gameId: "verb-voice", question: "one" },
+      { gameId: "verb-voice", question: "two" },
+      { gameId: "prepositions", question: "ἀπό" },
+    ]);
+    const wrapper = mount(Review);
+
+    await focusRow(wrapper, "Verb Voice").get("input[type=checkbox]").setValue(true);
+
+    const launch = wrapper.get("a.focus-launch");
+    expect(launch.attributes("href")).toBe("#/focus?games=verb-voice");
+    expect(launch.text()).toContain("2");
+  });
+
+  test("select-all checks every game and links them all", async () => {
+    seed([
+      { gameId: "verb-voice", question: "one" },
+      { gameId: "prepositions", question: "ἀπό" },
+    ]);
+    const wrapper = mount(Review);
+
+    await wrapper.get(".focus-all input[type=checkbox]").setValue(true);
+
+    const launch = wrapper.get("a.focus-launch");
+    expect(launch.attributes("href")).toBe("#/focus?games=prepositions,verb-voice");
+    expect(launch.text()).toContain("2");
+  });
+
+  test("shows no focus panel when nothing has been missed", () => {
+    const wrapper = mount(Review);
+
+    expect(wrapper.find(".focus-panel").exists()).toBe(false);
+  });
+});

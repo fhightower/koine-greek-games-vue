@@ -11,6 +11,7 @@ import VerbVoice from '../views/VerbVoice.vue'
 import AdjectiveAgathos from '../views/AdjectiveAgathos.vue'
 import Prepositions from '../views/Prepositions.vue'
 import Review from '../views/Review.vue'
+import Focus from '../views/Focus.vue'
 import EimiForms from '../views/EimiForms.vue'
 import Demonstratives from '../views/Demonstratives.vue'
 import { translationLessons } from '../data/translationGames'
@@ -98,6 +99,15 @@ const router = createRouter({
       name: 'Review',
       component: Review,
       meta: { description: 'Review Missed Answers' },
+    },
+    {
+      path: '/focus',
+      name: 'Focus',
+      component: Focus,
+      // The raw `games` query passes straight through as a prop, so Focus needs no
+      // router of its own to read it.
+      props: route => ({ games: String(route.query.games ?? '') }),
+      meta: { description: 'Focus on Missed Questions' },
     },
   ],
 })
