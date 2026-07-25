@@ -6,6 +6,7 @@ import {
   clearMisses,
   loadMisses,
   missedQuestions,
+  summarizeMisses,
   type MissEntry,
 } from "../utils/missLog";
 import { clearAnswerStats } from "../utils/performanceStats";
@@ -56,6 +57,9 @@ const visibleMisses = computed(() =>
     ? misses.value
     : misses.value.filter((miss) => miss.gameId === selectedGame.value),
 );
+
+// One row per question, most recent attempt shown, repeats folded into a count.
+const missRows = computed(() => summarizeMisses(visibleMisses.value));
 
 function refresh() {
   misses.value = loadMisses();
@@ -190,11 +194,12 @@ function clearEverything() {
     </p>
 
     <ol v-else class="misses">
-      <li v-for="miss in visibleMisses" :key="`${miss.gameId}|${miss.question}|${miss.at}`" class="miss">
+      <li v-for="miss in missRows" :key="`${miss.gameId}|${miss.question}`" class="miss">
         <div class="miss__top">
           <span class="miss__question">{{ miss.question }}</span>
           <span class="miss__game">{{ gameLabel(miss.gameId) }}</span>
         </div>
+        <p v-if="miss.count > 1" class="miss__count">missed {{ miss.count }}×</p>
         <dl class="miss__answers">
           <dt>you gave</dt>
           <dd class="miss__given">{{ miss.given || "—" }}</dd>
@@ -429,6 +434,13 @@ function clearEverything() {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--app-muted);
+}
+
+.miss__count {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
 }
 
 .miss__answers {

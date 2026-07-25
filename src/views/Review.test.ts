@@ -41,6 +41,27 @@ describe("Review", () => {
     expect(wrapper.findAll(".miss__question").map((q) => q.text())).toEqual(["newer", "older"]);
   });
 
+  test("collapses a repeatedly-missed question into one row with a count", () => {
+    seed([
+      { question: "λύεται", given: "active", at: 1000 },
+      { question: "λύεται", given: "middle", at: 2000 },
+    ]);
+
+    const wrapper = mount(Review);
+
+    expect(wrapper.findAll(".miss__question").map((q) => q.text())).toEqual(["λύεται"]);
+    expect(wrapper.get(".miss__count").text()).toBe("missed 2×");
+    expect(wrapper.get(".miss__given").text()).toBe("middle");
+  });
+
+  test("shows no count badge for a question missed once", () => {
+    seed([{ question: "λύεται" }]);
+
+    const wrapper = mount(Review);
+
+    expect(wrapper.find(".miss__count").exists()).toBe(false);
+  });
+
   test("names each miss's game", () => {
     seed([{ gameId: "lesson-3-translation" }]);
 

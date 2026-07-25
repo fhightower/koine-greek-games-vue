@@ -22,6 +22,7 @@ const questions = missedQuestions(selectedGameIds());
 const startingCount = questions.length;
 
 const queue = ref<FocusQueue>(createQueue(questions));
+const attempt = ref("");
 const revealed = ref(false);
 
 const card = computed(() => current(queue.value));
@@ -34,6 +35,7 @@ function reveal() {
 
 function mark(gotIt: boolean) {
   queue.value = grade(queue.value, gotIt);
+  attempt.value = "";
   revealed.value = false;
 }
 </script>
@@ -56,6 +58,16 @@ function mark(gotIt: boolean) {
       <p class="focus__remaining">{{ left }} to go</p>
       <span class="focus__game">{{ gameLabel(card.gameId) }}</span>
       <p class="focus__question">{{ card.question }}</p>
+
+      <textarea
+        v-model="attempt"
+        class="focus__input"
+        rows="3"
+        placeholder="Type your answer…"
+        :disabled="revealed"
+        @keydown.ctrl.enter="reveal"
+        @keydown.meta.enter="reveal"
+      ></textarea>
 
       <button v-if="!revealed" class="btn btn--reveal" @click="reveal">Reveal answer</button>
 
@@ -119,12 +131,38 @@ function mark(gotIt: boolean) {
 }
 
 .focus__question {
-  margin: 0.4rem 0 1.75rem;
+  margin: 0.4rem 0 1.5rem;
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 4.5vw, 2rem);
   font-weight: 500;
   line-height: 1.4;
   color: var(--app-text);
+}
+
+.focus__input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 1.1rem;
+  padding: 0.9rem 1.1rem;
+  background: #fffdf8;
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  color: var(--app-text);
+  font-family: inherit;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  resize: vertical;
+  box-shadow: 0 1px 2px rgba(43, 37, 32, 0.04);
+}
+
+.focus__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(156, 59, 46, 0.12);
+}
+
+.focus__input:disabled {
+  opacity: 0.7;
 }
 
 .btn {

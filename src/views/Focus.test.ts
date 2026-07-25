@@ -111,6 +111,27 @@ describe("Focus", () => {
     expect(wrapper.get(".focus__remaining").text()).toContain("2");
   });
 
+  test("offers a box to type the answer before revealing", () => {
+    seed([{ question: "λύεται", answer: "passive" }]);
+
+    const wrapper = mountFocus("verb-voice");
+
+    expect(wrapper.find("textarea").exists()).toBe(true);
+  });
+
+  test("clears the typed answer when moving to the next question", async () => {
+    seed([
+      { question: "one", answer: "a", at: 2000 },
+      { question: "two", answer: "b", at: 1000 },
+    ]);
+    const wrapper = mountFocus("verb-voice");
+
+    await wrapper.get("textarea").setValue("my guess");
+    await answer(wrapper, true);
+
+    expect(wrapper.get("textarea").element.value).toBe("");
+  });
+
   test("never writes to the miss log while drilling", async () => {
     seed([{ question: "solo", answer: "done" }]);
     const before = loadMisses();

@@ -76,6 +76,30 @@ export function mergeMisses(mine: MissEntry[], theirs: MissEntry[]): MissEntry[]
   return normalize([...mine, ...theirs]);
 }
 
+export type MissSummary = MissEntry & { count: number };
+
+/**
+ * One row per distinct `gameId|question`, newest miss first, carrying the number of
+ * times that question was missed. The representative row is the most recent miss, so
+ * its `given` and `at` are the latest attempt. Feeds the review list.
+ */
+export function summarizeMisses(misses: MissEntry[]): MissSummary[] {
+  const byKey = new Map<string, MissSummary>();
+
+  // Input is newest-first, so the first miss seen for a key is its most recent.
+  for (const miss of misses) {
+    const key = `${miss.gameId}|${miss.question}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      byKey.set(key, { ...miss, count: 1 });
+    }
+  }
+
+  return [...byKey.values()];
+}
+
 export type MissedQuestion = { gameId: string; question: string; answer: string };
 
 /**

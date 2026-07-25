@@ -6,6 +6,7 @@ import {
   mergeMisses,
   missedQuestions,
   recordMiss,
+  summarizeMisses,
   type MissEntry,
 } from "./missLog";
 
@@ -112,6 +113,53 @@ describe("mergeMisses", () => {
 
     expect(merged).toHaveLength(MISS_LOG_LIMIT);
     expect(merged.some((miss) => miss.question === "ancient")).toBe(false);
+  });
+});
+
+describe("summarizeMisses", () => {
+  test("returns nothing for an empty log", () => {
+    expect(summarizeMisses([])).toEqual([]);
+  });
+
+  test("keeps a once-missed question as a single row with count 1", () => {
+    const miss = makeMiss({ question: "λύεται", at: 1000 });
+
+    expect(summarizeMisses([miss])).toEqual([{ ...miss, count: 1 }]);
+  });
+
+  test("collapses repeats of a question into one row carrying the count", () => {
+    const newer = makeMiss({ question: "λύεται", given: "middle", at: 2000 });
+    const older = makeMiss({ question: "λύεται", given: "active", at: 1000 });
+
+    const summary = summarizeMisses([newer, older]);
+
+    expect(summary).toHaveLength(1);
+    expect(summary[0]?.count).toBe(2);
+  });
+
+  test("shows the most recent attempt for a collapsed question", () => {
+    const newer = makeMiss({ question: "λύεται", given: "middle", at: 2000 });
+    const older = makeMiss({ question: "λύεται", given: "active", at: 1000 });
+
+    expect(summarizeMisses([newer, older])[0]?.given).toBe("middle");
+    expect(summarizeMisses([newer, older])[0]?.at).toBe(2000);
+  });
+
+  test("keeps the same question in different games apart", () => {
+    const voice = makeMiss({ gameId: "verb-voice", question: "λύει", at: 2000 });
+    const luo = makeMiss({ gameId: "luo-endings", question: "λύει", at: 1000 });
+
+    expect(summarizeMisses([voice, luo])).toHaveLength(2);
+  });
+
+  test("orders rows by their most recent miss, newest first", () => {
+    const rows = summarizeMisses([
+      makeMiss({ question: "b", at: 3000 }),
+      makeMiss({ question: "a", at: 2000 }),
+      makeMiss({ question: "b", at: 1000 }),
+    ]);
+
+    expect(rows.map((row) => row.question)).toEqual(["b", "a"]);
   });
 });
 
