@@ -51,6 +51,7 @@ function grade(gotIt: boolean) {
     correct: gotIt,
     given: attempt.value.trim(),
     answer: current.value.english,
+    retry: retrying.value,
   })
 
   if (gotIt) {

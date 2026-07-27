@@ -132,7 +132,7 @@ describe("Focus", () => {
     expect(wrapper.get("textarea").element.value).toBe("");
   });
 
-  test("never writes to the miss log while drilling", async () => {
+  test("never adds to the miss log while drilling", async () => {
     seed([{ question: "solo", answer: "done" }]);
     const before = loadMisses();
     const wrapper = mountFocus("verb-voice");
@@ -141,5 +141,42 @@ describe("Focus", () => {
     await answer(wrapper, true);
 
     expect(loadMisses()).toEqual(before);
+  });
+
+  test("drops a question from the miss log after two correct answers in a row", async () => {
+    seed([{ question: "solo", answer: "done" }]);
+    const wrapper = mountFocus("verb-voice");
+
+    await answer(wrapper, true);
+    expect(loadMisses()).toHaveLength(1);
+
+    await answer(wrapper, true);
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("only clears the question that was drilled", async () => {
+    // Two cards alternate, so each is graded once per pass through the queue.
+    seed([
+      { question: "solo", answer: "done", at: 2000 },
+      { question: "other", answer: "still missed", at: 1000 },
+    ]);
+    const wrapper = mountFocus("verb-voice");
+
+    await answer(wrapper, true); // solo, streak 1
+    await answer(wrapper, false); // other, reset
+    await answer(wrapper, true); // solo, streak 2 — cleared
+
+    expect(loadMisses().map((miss) => miss.question)).toEqual(["other"]);
+  });
+
+  test("keeps a question in the miss log when the run is broken", async () => {
+    seed([{ question: "solo", answer: "done" }]);
+    const wrapper = mountFocus("verb-voice");
+
+    await answer(wrapper, true); // streak 1
+    await answer(wrapper, false); // reset
+    await answer(wrapper, true); // streak 1 again
+
+    expect(loadMisses()).toHaveLength(1);
   });
 });

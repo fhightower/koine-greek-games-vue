@@ -1,4 +1,4 @@
-import { recordMiss } from "./missLog";
+import { recordCorrect, recordMiss } from "./missLog";
 
 export type AnswerStat = {
   seen: number;
@@ -16,6 +16,12 @@ export type QuestionOutcome = {
   given: string;
   /** What the right answer was. */
   answer: string;
+  /**
+   * True when this is the immediate re-ask of a question just missed, with the
+   * correction still fresh. It counts as seen, but getting it right here is not
+   * recall, so it does not count towards clearing the question from the miss log.
+   */
+  retry?: boolean;
   /** Overridable for tests; defaults to now. */
   at?: number;
 };
@@ -69,7 +75,7 @@ function buildStatKey(gameId: string, question: string): string {
 }
 
 export function recordQuestionOutcome(outcome: QuestionOutcome) {
-  const { gameId, question, correct, given, answer } = outcome;
+  const { gameId, question, correct, given, answer, retry = false } = outcome;
 
   const stats = loadAnswerStats();
   const key = buildStatKey(gameId, question);
@@ -85,6 +91,8 @@ export function recordQuestionOutcome(outcome: QuestionOutcome) {
 
   if (!correct) {
     recordMiss({ gameId, question, given, answer, at: outcome.at ?? Date.now() });
+  } else if (!retry) {
+    recordCorrect(gameId, question);
   }
 }
 

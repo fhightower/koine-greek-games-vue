@@ -76,6 +76,62 @@ describe("recordQuestionOutcome", () => {
 
     expect(loadMisses()).toEqual([]);
   });
+
+  test("drops a logged miss once the question has been answered right twice", () => {
+    const outcome = { gameId: "verb-voice", question: "λύεται", given: "", answer: "passive" };
+    recordQuestionOutcome({ ...outcome, correct: false, at: 1000 });
+
+    recordQuestionOutcome({ ...outcome, correct: true });
+    expect(loadMisses()).toHaveLength(1);
+
+    recordQuestionOutcome({ ...outcome, correct: true });
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("keeps the miss when a wrong answer breaks the run of correct ones", () => {
+    const outcome = { gameId: "verb-voice", question: "λύεται", given: "", answer: "passive" };
+    recordQuestionOutcome({ ...outcome, correct: false, at: 1000 });
+    recordQuestionOutcome({ ...outcome, correct: true });
+    recordQuestionOutcome({ ...outcome, correct: false, at: 2000 });
+    recordQuestionOutcome({ ...outcome, correct: true });
+
+    expect(loadMisses()).toHaveLength(2);
+  });
+
+  test("does not count the immediate retry of a miss towards clearing it", () => {
+    const outcome = { gameId: "verb-voice", question: "λύεται", given: "", answer: "passive" };
+    recordQuestionOutcome({ ...outcome, correct: false, at: 1000 });
+    // Claimed on the re-ask, with the answer still fresh — that is not recall.
+    recordQuestionOutcome({ ...outcome, correct: true, retry: true });
+    recordQuestionOutcome({ ...outcome, correct: true });
+
+    expect(loadMisses()).toHaveLength(1);
+
+    recordQuestionOutcome({ ...outcome, correct: true });
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("still counts a retry as seen and correct", () => {
+    recordQuestionOutcome({
+      gameId: "verb-voice",
+      question: "λύεται",
+      correct: true,
+      given: "passive",
+      answer: "passive",
+      retry: true,
+    });
+
+    expect(loadAnswerStats()["verb-voice|λύεται"]).toEqual({ seen: 1, correct: 1 });
+  });
+
+  test("keeps counting the question as seen after the miss is cleared", () => {
+    const outcome = { gameId: "verb-voice", question: "λύεται", given: "", answer: "passive" };
+    recordQuestionOutcome({ ...outcome, correct: false, at: 1000 });
+    recordQuestionOutcome({ ...outcome, correct: true });
+    recordQuestionOutcome({ ...outcome, correct: true });
+
+    expect(loadAnswerStats()["verb-voice|λύεται"]).toEqual({ seen: 3, correct: 2 });
+  });
 });
 
 describe("loadAnswerStats", () => {

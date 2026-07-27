@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { gameLabel } from "../utils/gameLabels";
 import {
+  CLEAR_AFTER,
   MISS_LOG_LIMIT,
   clearMisses,
   loadMisses,
@@ -131,6 +132,10 @@ function clearEverything() {
           misses.length === MISS_LOG_LIMIT ? " — the log is full, so the oldest now drop off" : ""
         }}
       </p>
+      <p v-if="misses.length" class="review__rule">
+        Answer a question right {{ CLEAR_AFTER }} times in a row — here or in the game — and it
+        leaves this list. Missing it again starts the count over.
+      </p>
     </header>
 
     <div class="review__controls">
@@ -247,6 +252,15 @@ function clearEverything() {
   margin: 0.15rem 0 0;
   font-size: 0.9rem;
   color: var(--app-muted);
+}
+
+.review__rule {
+  max-width: 60ch;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--app-muted);
+  font-style: italic;
 }
 
 .review__controls {

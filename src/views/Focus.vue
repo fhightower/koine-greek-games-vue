@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { gameLabel } from "../utils/gameLabels";
-import { loadMisses, missedQuestions } from "../utils/missLog";
+import { loadMisses, missedQuestions, recordCorrect, resetCorrectStreak } from "../utils/missLog";
 import { createQueue, current, grade, remaining, type FocusQueue } from "../utils/focusQueue";
 
 // The route hands the raw `games` query value straight through, so this component can
@@ -34,6 +34,17 @@ function reveal() {
 }
 
 function mark(gotIt: boolean) {
+  const graded = current(queue.value);
+  if (graded) {
+    // A drill grade never adds to the miss log, but it does count towards clearing
+    // the question from it — on the same two-in-a-row terms the queue itself uses.
+    if (gotIt) {
+      recordCorrect(graded.gameId, graded.question);
+    } else {
+      resetCorrectStreak(graded.gameId, graded.question);
+    }
+  }
+
   queue.value = grade(queue.value, gotIt);
   attempt.value = "";
   revealed.value = false;

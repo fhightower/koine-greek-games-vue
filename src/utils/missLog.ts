@@ -8,6 +8,13 @@ export type MissEntry = {
 
 const STORAGE_KEY = "koine:miss-log:v1";
 
+/**
+ * Correct answers still owed before a question leaves the log, per `gameId|question`.
+ * Kept apart from the log itself because it is working state, not history: it only
+ * ever holds questions currently in the log, and an entry dies with its question.
+ */
+const RECOVERY_KEY = "koine:miss-recovery:v1";
+
 /** Newest-first log size. Roughly 120 KB of localStorage at ~120 bytes per entry. */
 export const MISS_LOG_LIMIT = 1000;
 
@@ -70,6 +77,91 @@ export function saveMisses(misses: MissEntry[]) {
 
 export function recordMiss(miss: MissEntry) {
   saveMisses([miss, ...loadMisses()]);
+  // Missing it again undoes whatever progress had been made towards clearing it.
+  resetCorrectStreak(miss.gameId, miss.question);
+}
+
+/** Consecutive correct answers that retire a question from the log. */
+export const CLEAR_AFTER = 2;
+
+type RecoveryCounts = Record<string, number>;
+
+function questionKey(gameId: string, question: string): string {
+  return `${gameId}|${question}`;
+}
+
+function loadRecovery(): RecoveryCounts {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  const raw = window.localStorage.getItem(RECOVERY_KEY);
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(parsed as Record<string, unknown>).filter(
+        ([, count]) => typeof count === "number",
+      ),
+    ) as RecoveryCounts;
+  } catch {
+    return {};
+  }
+}
+
+function saveRecovery(counts: RecoveryCounts) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (Object.keys(counts).length === 0) {
+    window.localStorage.removeItem(RECOVERY_KEY);
+    return;
+  }
+  window.localStorage.setItem(RECOVERY_KEY, JSON.stringify(counts));
+}
+
+/** Drops every miss stored for a question, and any progress counted towards that. */
+export function forgetQuestion(gameId: string, question: string) {
+  const key = questionKey(gameId, question);
+  saveMisses(loadMisses().filter((miss) => questionKey(miss.gameId, miss.question) !== key));
+  resetCorrectStreak(gameId, question);
+}
+
+/** Forgets how close a question was to being cleared, without touching the log. */
+export function resetCorrectStreak(gameId: string, question: string) {
+  const counts = loadRecovery();
+  delete counts[questionKey(gameId, question)];
+  saveRecovery(counts);
+}
+
+/**
+ * Counts one correct answer towards clearing a missed question. `CLEAR_AFTER` in a
+ * row with no miss in between and the question leaves the log for good. Questions
+ * that are not in the log are ignored, so nothing is tracked for them.
+ */
+export function recordCorrect(gameId: string, question: string) {
+  const key = questionKey(gameId, question);
+  const isLogged = loadMisses().some((miss) => questionKey(miss.gameId, miss.question) === key);
+  if (!isLogged) {
+    return;
+  }
+
+  const counts = loadRecovery();
+  const streak = (counts[key] ?? 0) + 1;
+
+  if (streak >= CLEAR_AFTER) {
+    forgetQuestion(gameId, question);
+    return;
+  }
+
+  counts[key] = streak;
+  saveRecovery(counts);
 }
 
 export function mergeMisses(mine: MissEntry[], theirs: MissEntry[]): MissEntry[] {
@@ -134,4 +226,5 @@ export function clearMisses() {
     return;
   }
   window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem(RECOVERY_KEY);
 }

@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import {
+  CLEAR_AFTER,
   MISS_LOG_LIMIT,
   clearMisses,
+  forgetQuestion,
   loadMisses,
   mergeMisses,
   missedQuestions,
+  recordCorrect,
   recordMiss,
+  resetCorrectStreak,
   summarizeMisses,
   type MissEntry,
 } from "./missLog";
@@ -170,6 +174,139 @@ describe("clearMisses", () => {
     clearMisses();
 
     expect(loadMisses()).toEqual([]);
+  });
+
+  test("forgets how close every question was to being cleared", () => {
+    recordMiss(makeMiss({ question: "λύεται" }));
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    clearMisses();
+    recordMiss(makeMiss({ question: "λύεται" }));
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    // The pre-clear correct answer must not count towards the two.
+    expect(loadMisses()).toHaveLength(1);
+  });
+});
+
+describe("forgetQuestion", () => {
+  test("removes every stored miss of that question", () => {
+    recordMiss(makeMiss({ question: "λύεται", at: 1000 }));
+    recordMiss(makeMiss({ question: "λύεται", at: 2000 }));
+
+    forgetQuestion("lesson-3-translation", "λύεται");
+
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("leaves other questions and other games alone", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύεται", at: 1000 }));
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύομεν", at: 2000 }));
+    recordMiss(makeMiss({ gameId: "prepositions", question: "λύεται", at: 3000 }));
+
+    forgetQuestion("verb-voice", "λύεται");
+
+    expect(loadMisses().map((miss) => `${miss.gameId}|${miss.question}`)).toEqual([
+      "prepositions|λύεται",
+      "verb-voice|λύομεν",
+    ]);
+  });
+});
+
+describe("recordCorrect", () => {
+  test("keeps the question until it has been answered right twice", () => {
+    recordMiss(makeMiss({ question: "λύεται" }));
+
+    for (let i = 1; i < CLEAR_AFTER; i += 1) {
+      recordCorrect("lesson-3-translation", "λύεται");
+      expect(loadMisses()).toHaveLength(1);
+    }
+
+    recordCorrect("lesson-3-translation", "λύεται");
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("clears every stored miss of a question, not just the newest", () => {
+    recordMiss(makeMiss({ question: "λύεται", at: 1000 }));
+    recordMiss(makeMiss({ question: "λύεται", at: 2000 }));
+
+    recordCorrect("lesson-3-translation", "λύεται");
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("leaves other questions in the log", () => {
+    recordMiss(makeMiss({ question: "λύεται", at: 1000 }));
+    recordMiss(makeMiss({ question: "λύομεν", at: 2000 }));
+
+    recordCorrect("lesson-3-translation", "λύεται");
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    expect(loadMisses().map((miss) => miss.question)).toEqual(["λύομεν"]);
+  });
+
+  test("keeps the same question in different games apart", () => {
+    recordMiss(makeMiss({ gameId: "verb-voice", question: "λύει", at: 1000 }));
+    recordMiss(makeMiss({ gameId: "luo-endings", question: "λύει", at: 2000 }));
+
+    recordCorrect("verb-voice", "λύει");
+    recordCorrect("verb-voice", "λύει");
+
+    expect(loadMisses().map((miss) => miss.gameId)).toEqual(["luo-endings"]);
+  });
+
+  test("a fresh miss resets the streak, so the count starts over", () => {
+    recordMiss(makeMiss({ question: "λύεται", at: 1000 }));
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    recordMiss(makeMiss({ question: "λύεται", at: 2000 }));
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    expect(loadMisses()).toHaveLength(2);
+
+    recordCorrect("lesson-3-translation", "λύεται");
+    expect(loadMisses()).toEqual([]);
+  });
+
+  test("does nothing for a question that was never missed", () => {
+    recordCorrect("verb-voice", "never missed");
+    recordCorrect("verb-voice", "never missed");
+
+    expect(loadMisses()).toEqual([]);
+    // No bookkeeping is kept for questions that are not in the log.
+    expect(window.localStorage.getItem("koine:miss-recovery:v1")).toBeNull();
+  });
+
+  test("a question missed again after being cleared needs two more correct answers", () => {
+    recordMiss(makeMiss({ question: "λύεται", at: 1000 }));
+    recordCorrect("lesson-3-translation", "λύεται");
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    recordMiss(makeMiss({ question: "λύεται", at: 2000 }));
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    expect(loadMisses()).toHaveLength(1);
+  });
+});
+
+describe("resetCorrectStreak", () => {
+  test("throws away progress towards clearing a question", () => {
+    recordMiss(makeMiss({ question: "λύεται" }));
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    resetCorrectStreak("lesson-3-translation", "λύεται");
+    recordCorrect("lesson-3-translation", "λύεται");
+
+    expect(loadMisses()).toHaveLength(1);
+  });
+
+  test("does not touch the log itself", () => {
+    recordMiss(makeMiss({ question: "λύεται" }));
+
+    resetCorrectStreak("lesson-3-translation", "λύεται");
+
+    expect(loadMisses()).toHaveLength(1);
   });
 });
 
