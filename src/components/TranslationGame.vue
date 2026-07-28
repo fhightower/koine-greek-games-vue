@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import type { TranslationSentence } from '../data/translationGames'
 import { getRandomInt } from '../utils/random'
 import { recordQuestionOutcome } from '../utils/performanceStats'
+import FlagQuestion from './FlagQuestion.vue'
 
 const props = defineProps<{
   gameId: string
@@ -163,6 +164,12 @@ watch(
         <button class="grade grade--got" @click="grade(true)">I got it</button>
         <button class="grade grade--missed" @click="grade(false)">Missed it</button>
       </div>
+
+      <FlagQuestion
+        :gameId="props.gameId"
+        :question="current.greek"
+        :answer="current.english"
+      />
     </div>
 
     <details v-if="missed.length" class="missed">
@@ -310,6 +317,13 @@ watch(
   display: flex;
   justify-content: center;
   gap: 0.85rem;
+}
+
+/* The flag trigger sits under the grade buttons, so it shares their centre line. The
+   panel it opens keeps the left-aligned layout its own styles give it. */
+.trans__feedback :deep(.flag__open) {
+  display: block;
+  margin-inline: auto;
 }
 
 .grade--got {

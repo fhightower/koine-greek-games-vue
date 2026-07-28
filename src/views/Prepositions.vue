@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { getRandomInt } from '../utils/random'
 import { recordQuestionOutcome } from '../utils/performanceStats'
+import FlagQuestion from '../components/FlagQuestion.vue'
 
 // Prepositions and the cases they govern (Machen Lesson VII, §§77, 80-84).
 const gameId = 'prepositions'
@@ -143,6 +144,12 @@ function nextQuestion() {
         with {{ use.case_ }}: <i>{{ use.meaning }}</i>
       </p>
       <button class="next" @click="nextQuestion">Next →</button>
+
+      <FlagQuestion
+        :gameId="gameId"
+        :question="current.word"
+        :answer="correctCases.join(', ')"
+      />
     </div>
 
     <details v-if="missedAnswers.length" class="missed">

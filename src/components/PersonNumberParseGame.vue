@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { GrammaticalNumber, Person } from '../data/luoMiddlePassiveForms'
 import { getRandomInt } from '../utils/random'
 import { recordQuestionOutcome } from '../utils/performanceStats'
+import FlagQuestion from './FlagQuestion.vue'
 
 export interface ParseForm {
   form: string
@@ -139,6 +140,12 @@ function nextQuestion() {
         </template>
       </p>
       <button class="next" @click="nextQuestion">Next →</button>
+
+      <FlagQuestion
+        :gameId="props.gameId"
+        :question="current.form"
+        :answer="`${personLabel(current.person)} ${current.number}`"
+      />
     </div>
 
     <details v-if="missedAnswers.length" class="missed">

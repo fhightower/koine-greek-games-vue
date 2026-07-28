@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { verbVoiceSentences, type Voice } from '../data/verbVoiceSentences'
 import { getRandomInt } from '../utils/random'
 import { recordQuestionOutcome } from '../utils/performanceStats'
+import FlagQuestion from '../components/FlagQuestion.vue'
 
 const gameId = 'verb-voice'
 
@@ -98,6 +99,12 @@ function buttonClass(voice: Voice) {
       </p>
       <p class="voice__why">{{ current.why }}</p>
       <button class="next" @click="nextQuestion">Next →</button>
+
+      <FlagQuestion
+        :gameId="gameId"
+        :question="current.sentence"
+        :answer="voiceLabel(current.voice)"
+      />
     </div>
 
     <details v-if="missedAnswers.length" class="missed">

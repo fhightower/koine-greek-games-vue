@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import type { Answer, Combination, MissedAnswer } from "../types/nominalForms";
+import { answerText } from "../utils/nominalAnswerText";
+import FlagQuestion from "./FlagQuestion.vue";
 
 const props = defineProps<{
   correctAnswer: Answer | null;
   correctCombinations: Combination[];
   message: string;
   missedAnswers: MissedAnswer[];
+  /** Optional: a grid that does not name its question simply offers no flag control. */
+  gameId?: string;
+  question?: string;
 }>();
 
 const emit = defineEmits<{
@@ -48,6 +53,12 @@ const emit = defineEmits<{
       </p>
       <br />
       <button class="button" @click="emit('nextQuestion')">Next ></button>
+      <FlagQuestion
+        v-if="gameId && question"
+        :gameId="gameId"
+        :question="question"
+        :answer="answerText(correctAnswer)"
+      />
     </template>
     <template v-else>
       {{ message }}

@@ -177,6 +177,8 @@ function checkAnswer(gender: string, number: string, case_: string) {
     :correctCombinations="correctCombinations"
     :message="message"
     :missedAnswers="missedAnswers"
+    :gameId="gameId"
+    :question="getQuestion()"
     @nextQuestion="nextQuestion"
   />
 

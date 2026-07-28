@@ -1,3 +1,4 @@
+import { isFlagEntry, loadFlags, mergeFlags, saveFlags, type FlagEntry } from "./flagLog";
 import { isMissEntry, loadMisses, mergeMisses, saveMisses, type MissEntry } from "./missLog";
 import {
   loadAnswerStats,
@@ -15,10 +16,12 @@ export type ProgressFile = {
   exportedAt: number;
   stats: AnswerStats;
   misses: MissEntry[];
+  /** Absent in files written before flagging existed; import treats that as none. */
+  flags: FlagEntry[];
 };
 
 export type ImportResult =
-  | { ok: true; imported: number; added: number; skipped: number }
+  | { ok: true; imported: number; added: number; skipped: number; flags: number }
   | { ok: false; error: string };
 
 export function buildProgressExport(exportedAt: number): ProgressFile {
@@ -28,6 +31,7 @@ export function buildProgressExport(exportedAt: number): ProgressFile {
     exportedAt,
     stats: loadAnswerStats(),
     misses: loadMisses(),
+    flags: loadFlags(),
   };
 }
 
@@ -82,6 +86,9 @@ export function importProgress(json: string): ImportResult {
   const merged = mergeMisses(existing, misses);
   saveMisses(merged);
 
+  const flags = Array.isArray(file.flags) ? file.flags.filter(isFlagEntry) : [];
+  saveFlags(mergeFlags(loadFlags(), flags));
+
   if (isAnswerStats(file.stats)) {
     saveAnswerStats(mergeAnswerStats(loadAnswerStats(), file.stats));
   }
@@ -91,5 +98,6 @@ export function importProgress(json: string): ImportResult {
     imported: misses.length,
     added: Math.max(0, merged.length - existing.length),
     skipped,
+    flags: flags.length,
   };
 }

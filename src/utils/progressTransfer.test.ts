@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import { FLAG_NOTE_LIMIT, loadFlags, recordFlag, type FlagEntry } from "./flagLog";
 import { loadMisses, recordMiss, type MissEntry } from "./missLog";
 import { loadAnswerStats, saveAnswerStats } from "./performanceStats";
 import {
@@ -20,6 +21,18 @@ function makeMiss(overrides: Partial<MissEntry> = {}): MissEntry {
   };
 }
 
+function makeFlag(overrides: Partial<FlagEntry> = {}): FlagEntry {
+  return {
+    gameId: "verb-voice",
+    question: "λαμβάνομεν τὸ δῶρον",
+    answer: "Active",
+    reason: "wrong-answer",
+    note: "",
+    at: 1_753_363_100_000,
+    ...overrides,
+  };
+}
+
 function makeFile(overrides: Partial<ProgressFile> = {}): ProgressFile {
   return {
     kind: PROGRESS_FILE_KIND,
@@ -27,6 +40,7 @@ function makeFile(overrides: Partial<ProgressFile> = {}): ProgressFile {
     exportedAt: 1_753_363_200_000,
     stats: {},
     misses: [],
+    flags: [],
     ...overrides,
   };
 }
@@ -45,6 +59,12 @@ describe("buildProgressExport", () => {
     expect(file).toEqual(
       makeFile({ stats: { "a|q": { seen: 2, correct: 1 } }, misses: [makeMiss()] }),
     );
+  });
+
+  test("carries the flagged questions", () => {
+    recordFlag(makeFlag());
+
+    expect(buildProgressExport(1_753_363_200_000).flags).toEqual([makeFlag()]);
   });
 });
 
@@ -145,5 +165,61 @@ describe("importProgress", () => {
     const result = importProgress(JSON.stringify({ kind: PROGRESS_FILE_KIND, version: 1 }));
 
     expect(result).toMatchObject({ ok: true, imported: 0, added: 0 });
+  });
+
+  test("adds flags the device has never seen", () => {
+    importProgress(JSON.stringify(makeFile({ flags: [makeFlag()] })));
+
+    expect(loadFlags()).toEqual([makeFlag()]);
+  });
+
+  test("keeps flags that are only on this device", () => {
+    recordFlag(makeFlag({ question: "local", at: 1000 }));
+
+    importProgress(JSON.stringify(makeFile({ flags: [makeFlag({ question: "remote", at: 2000 })] })));
+
+    expect(loadFlags().map((flag) => flag.question)).toEqual(["remote", "local"]);
+  });
+
+  test("adds no duplicate flag when the same file is imported twice", () => {
+    const json = JSON.stringify(makeFile({ flags: [makeFlag()] }));
+    importProgress(json);
+
+    importProgress(json);
+
+    expect(loadFlags()).toEqual([makeFlag()]);
+  });
+
+  test("imports a file written before flags existed", () => {
+    recordFlag(makeFlag());
+
+    const result = importProgress(
+      JSON.stringify({ kind: PROGRESS_FILE_KIND, version: 1, stats: {}, misses: [] }),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(loadFlags()).toEqual([makeFlag()]);
+  });
+
+  test("reports how many flags arrived, so a flag-only file is not silent", () => {
+    const result = importProgress(
+      JSON.stringify(makeFile({ flags: [makeFlag(), makeFlag({ reason: "typo" })] })),
+    );
+
+    expect(result).toMatchObject({ ok: true, imported: 0, flags: 2 });
+  });
+
+  test("caps an imported note the same way a typed one is capped", () => {
+    importProgress(JSON.stringify(makeFile({ flags: [makeFlag({ note: "x".repeat(5000) })] })));
+
+    expect(loadFlags()[0]?.note).toHaveLength(FLAG_NOTE_LIMIT);
+  });
+
+  test("skips malformed flags but keeps the good ones", () => {
+    importProgress(
+      JSON.stringify(makeFile({ flags: [makeFlag(), { gameId: "broken" }, null] as FlagEntry[] })),
+    );
+
+    expect(loadFlags()).toEqual([makeFlag()]);
   });
 });

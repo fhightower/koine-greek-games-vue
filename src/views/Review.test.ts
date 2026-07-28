@@ -1,5 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, test } from "vitest";
+import { loadFlags, type FlagEntry } from "../utils/flagLog";
+import { flagIssueUrl } from "../utils/flagReport";
 import { loadMisses, type MissEntry } from "../utils/missLog";
 import { loadAnswerStats, saveAnswerStats } from "../utils/performanceStats";
 import Review from "./Review.vue";
@@ -208,5 +210,88 @@ describe("Review focus panel", () => {
     const wrapper = mount(Review);
 
     expect(wrapper.find(".focus-panel").exists()).toBe(false);
+  });
+});
+
+describe("Review flag list", () => {
+  function seedFlags(flags: Partial<FlagEntry>[]) {
+    const entries = flags.map((flag, i) => ({
+      gameId: "verb-voice",
+      question: `q${i}`,
+      answer: "Active",
+      reason: "wrong-answer" as FlagEntry["reason"],
+      note: "",
+      at: 2_000_000 + i,
+      ...flag,
+    }));
+    window.localStorage.setItem("koine:flag-log:v1", JSON.stringify(entries));
+    return entries;
+  }
+
+  test("shows no flag panel until something is flagged", () => {
+    const wrapper = mount(Review);
+
+    expect(wrapper.find(".flags").exists()).toBe(false);
+  });
+
+  test("lists each flagged question with its game and expected answer", () => {
+    seedFlags([{ question: "λαμβάνομεν", answer: "we take" }]);
+
+    const wrapper = mount(Review);
+
+    const row = wrapper.get(".flagged");
+    expect(row.text()).toContain("λαμβάνομεν");
+    expect(row.text()).toContain("Verb Voice");
+    expect(row.text()).toContain("we take");
+    expect(row.text()).toContain("The expected answer is wrong");
+  });
+
+  test("shows the note when the player left one", () => {
+    seedFlags([{ note: "Machen glosses this as receive" }]);
+
+    const wrapper = mount(Review);
+
+    expect(wrapper.get(".flagged").text()).toContain("Machen glosses this as receive");
+  });
+
+  test("offers each flag the same prefilled issue the game did", () => {
+    const [flag] = seedFlags([{}]);
+
+    const wrapper = mount(Review);
+
+    expect(wrapper.get(".flagged a.flag-send").attributes("href")).toBe(flagIssueUrl(flag!));
+  });
+
+  test("removes one flag without touching the others", async () => {
+    seedFlags([{ question: "keep me" }, { question: "drop me" }]);
+    const wrapper = mount(Review);
+    const dropRow = wrapper.findAll(".flagged").find((row) => row.text().includes("drop me"))!;
+
+    await dropRow.findAll("button").find((b) => b.text() === "Remove")!.trigger("click");
+
+    expect(loadFlags().map((flag) => flag.question)).toEqual(["keep me"]);
+    expect(wrapper.findAll(".flagged")).toHaveLength(1);
+  });
+
+  test("wipes the flags along with the misses once a clear is confirmed", async () => {
+    seed([{}]);
+    seedFlags([{}]);
+    const wrapper = mount(Review);
+    await button(wrapper, "Clear all").trigger("click");
+
+    await button(wrapper, "Yes, clear").trigger("click");
+
+    expect(loadFlags()).toEqual([]);
+    expect(wrapper.find(".flags").exists()).toBe(false);
+  });
+
+  test("can still clear when there are flags but nothing missed", async () => {
+    seedFlags([{}]);
+    const wrapper = mount(Review);
+
+    await button(wrapper, "Clear all").trigger("click");
+    await button(wrapper, "Yes, clear").trigger("click");
+
+    expect(loadFlags()).toEqual([]);
   });
 });
