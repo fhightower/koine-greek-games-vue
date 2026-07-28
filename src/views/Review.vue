@@ -123,8 +123,11 @@ async function onFileChosen(event: Event) {
   const skipped = result.skipped > 0 ? `, ${result.skipped} skipped as unreadable` : "";
   // Flags are worth naming: a file holding only flags would otherwise report nothing
   // but zeroes while the panel below quietly filled up.
-  const flags = result.flags > 0 ? ` and ${result.flags} flagged question${result.flags === 1 ? "" : "s"}` : "";
-  say(`Imported ${result.imported} misses (${result.added} new)${flags}${skipped}.`);
+  const flagged =
+    result.flags > 0
+      ? ` and ${result.flags} flagged question${result.flags === 1 ? "" : "s"}`
+      : "";
+  say(`Imported ${result.imported} misses (${result.added} new)${flagged}${skipped}.`);
 }
 
 function dropFlag(flag: FlagEntry) {

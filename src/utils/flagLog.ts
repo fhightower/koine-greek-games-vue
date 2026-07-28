@@ -103,11 +103,15 @@ export function saveFlags(flags: FlagEntry[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalize(flags)));
 }
 
-/** Returns the entry as stored, so callers can report exactly what was kept. */
+/**
+ * Returns the entry as stored, so callers can report exactly what was kept. That is
+ * not always the flag passed in: if the log already holds a newer flag under the same
+ * key, dedupe keeps that one and this drops.
+ */
 export function recordFlag(flag: FlagEntry): FlagEntry {
-  const [stored] = normalize([flag]);
-  saveFlags([flag, ...loadFlags()]);
-  return stored!;
+  const stored = normalize([flag, ...loadFlags()]);
+  saveFlags(stored);
+  return stored.find((entry) => flagKey(entry) === flagKey(flag))!;
 }
 
 export function removeFlag(flag: FlagEntry) {

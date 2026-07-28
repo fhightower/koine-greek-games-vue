@@ -63,6 +63,17 @@ describe("recordFlag", () => {
     expect(stored.note).toHaveLength(FLAG_NOTE_LIMIT);
   });
 
+  test("hands back the surviving entry when a newer one already holds the key", () => {
+    recordFlag(makeFlag({ note: "already here", at: 5000 }));
+
+    const stored = recordFlag(makeFlag({ note: "arrives late", at: 1000 }));
+
+    // Dedupe keeps the newer entry, so that is what the caller must be handed back —
+    // not the one it just passed in, which the log dropped.
+    expect(stored).toEqual(loadFlags()[0]);
+    expect(stored.note).toBe("already here");
+  });
+
   test("trims the note", () => {
     recordFlag(makeFlag({ note: "  the gloss is off  " }));
 
