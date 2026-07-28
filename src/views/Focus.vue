@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { gameLabel } from "../utils/gameLabels";
 import { loadMisses, missedQuestions, recordCorrect, resetCorrectStreak } from "../utils/missLog";
 import { createQueue, current, grade, remaining, type FocusQueue } from "../utils/focusQueue";
+import FlagQuestion from "../components/FlagQuestion.vue";
 
 // The route hands the raw `games` query value straight through, so this component can
 // be mounted and tested without a router. A comma-separated list of game ids, or "all".
@@ -90,6 +91,12 @@ function mark(gotIt: boolean) {
           <button class="btn btn--got" @click="mark(true)">I got it</button>
           <button class="btn btn--missed" @click="mark(false)">Missed it</button>
         </div>
+
+        <FlagQuestion
+          :gameId="card.gameId"
+          :question="card.question"
+          :answer="card.answer"
+        />
       </div>
     </div>
   </main>
