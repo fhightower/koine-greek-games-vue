@@ -119,13 +119,15 @@ describe("Prepositions", () => {
     expect(miss?.given).toBe(secondWrong[0]);
   });
 
-  test("ignores a case already found, so it is graded once", async () => {
+  test("locks a case already found, so it cannot be graded twice", async () => {
     const wrapper = mount(Prepositions);
     await untilUsesCount(wrapper, 2);
     window.localStorage.clear();
     const { correctCases, current } = state(wrapper);
 
     await button(wrapper, correctCases[0]!).trigger("click");
+    // Disabled, so the click below never reaches the game — which is the point.
+    expect(button(wrapper, correctCases[0]!).attributes("disabled")).toBeDefined();
     await button(wrapper, correctCases[0]!).trigger("click");
 
     expect(wrapper.find(".prep__feedback").exists()).toBe(false);

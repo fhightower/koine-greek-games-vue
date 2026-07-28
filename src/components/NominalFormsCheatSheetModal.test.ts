@@ -1,4 +1,4 @@
-import { mount } from "@vue/test-utils";
+import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, test } from "vitest";
 import { nextTick } from "vue";
 import NominalFormsCheatSheetModal from "./NominalFormsCheatSheetModal.vue";
@@ -43,6 +43,8 @@ function cellText(selector: string) {
   }
   return cell.textContent?.trim();
 }
+
+enableAutoUnmount(afterEach);
 
 afterEach(() => {
   document.body.innerHTML = "";

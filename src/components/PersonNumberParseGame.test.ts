@@ -122,10 +122,12 @@ describe("PersonNumberParseGame", () => {
   test("keeps every missed form in the missed answers list", async () => {
     const { wrapper, form } = mountGame();
 
-    await cell(wrapper, aWrongCell(form).person, aWrongCell(form).number).trigger("click");
+    const firstWrong = aWrongCell(form);
+    await cell(wrapper, firstWrong.person, firstWrong.number).trigger("click");
     await wrapper.get("button.next").trigger("click");
     const second = shownForm(wrapper);
-    await cell(wrapper, aWrongCell(second).person, aWrongCell(second).number).trigger("click");
+    const secondWrong = aWrongCell(second);
+    await cell(wrapper, secondWrong.person, secondWrong.number).trigger("click");
 
     expect(wrapper.get(".missed summary").text()).toBe("Missed answers (2)");
     const missed = wrapper.findAll(".missed li").map((li) => li.text());

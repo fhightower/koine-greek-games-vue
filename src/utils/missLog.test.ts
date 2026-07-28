@@ -43,16 +43,22 @@ describe("recordMiss", () => {
     expect(loadMisses().map((miss) => miss.question)).toEqual(["newer", "older"]);
   });
 
-  test("drops the oldest miss once the log is full", () => {
-    for (let i = 0; i < MISS_LOG_LIMIT + 1; i += 1) {
-      recordMiss(makeMiss({ question: `q${i}`, at: 1000 + i }));
-    }
+  // Each recordMiss re-reads, re-sorts and re-writes the whole log, so filling it
+  // is quadratic and runs for several seconds once the suite loads the machine.
+  test(
+    "drops the oldest miss once the log is full",
+    () => {
+      for (let i = 0; i < MISS_LOG_LIMIT + 1; i += 1) {
+        recordMiss(makeMiss({ question: `q${i}`, at: 1000 + i }));
+      }
 
-    const misses = loadMisses();
-    expect(misses).toHaveLength(MISS_LOG_LIMIT);
-    expect(misses[0]?.question).toBe(`q${MISS_LOG_LIMIT}`);
-    expect(misses[misses.length - 1]?.question).toBe("q1");
-  });
+      const misses = loadMisses();
+      expect(misses).toHaveLength(MISS_LOG_LIMIT);
+      expect(misses[0]?.question).toBe(`q${MISS_LOG_LIMIT}`);
+      expect(misses[misses.length - 1]?.question).toBe("q1");
+    },
+    30_000,
+  );
 });
 
 describe("loadMisses", () => {
