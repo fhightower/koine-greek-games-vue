@@ -84,6 +84,7 @@ function nextQuestion() {
     message.value = "";
     correctAnswer.value = null;
     hadMiss.value = false;
+    wrongPicks.value = [];
     selectedAnswers.value = new Set();
     currentQuestionIndex.value = newIndex;
   }
