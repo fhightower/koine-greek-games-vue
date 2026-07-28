@@ -319,6 +319,13 @@ watch(
   gap: 0.85rem;
 }
 
+/* The flag trigger sits under the grade buttons, so it shares their centre line. The
+   panel it opens keeps the left-aligned layout its own styles give it. */
+.trans__feedback :deep(.flag__open) {
+  display: block;
+  margin-inline: auto;
+}
+
 .grade--got {
   background: #e7f1e7;
   color: #2f5a31;
