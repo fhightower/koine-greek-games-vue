@@ -1,3 +1,4 @@
+import { isFlagEntry, loadFlags, mergeFlags, saveFlags, type FlagEntry } from "./flagLog";
 import { isMissEntry, loadMisses, mergeMisses, saveMisses, type MissEntry } from "./missLog";
 import {
   loadAnswerStats,
@@ -15,6 +16,8 @@ export type ProgressFile = {
   exportedAt: number;
   stats: AnswerStats;
   misses: MissEntry[];
+  /** Absent in files written before flagging existed; import treats that as none. */
+  flags: FlagEntry[];
 };
 
 export type ImportResult =
@@ -28,6 +31,7 @@ export function buildProgressExport(exportedAt: number): ProgressFile {
     exportedAt,
     stats: loadAnswerStats(),
     misses: loadMisses(),
+    flags: loadFlags(),
   };
 }
 
@@ -81,6 +85,11 @@ export function importProgress(json: string): ImportResult {
   const existing = loadMisses();
   const merged = mergeMisses(existing, misses);
   saveMisses(merged);
+
+  // Flags merge quietly: the counts reported back are about misses, which is what the
+  // review page's import notice talks about.
+  const flags = Array.isArray(file.flags) ? file.flags.filter(isFlagEntry) : [];
+  saveFlags(mergeFlags(loadFlags(), flags));
 
   if (isAnswerStats(file.stats)) {
     saveAnswerStats(mergeAnswerStats(loadAnswerStats(), file.stats));

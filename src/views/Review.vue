@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import {
+  clearFlags,
+  flagReasonLabel,
+  loadFlags,
+  removeFlag,
+  type FlagEntry,
+} from "../utils/flagLog";
+import { flagIssueUrl, flagReportText } from "../utils/flagReport";
 import { gameLabel } from "../utils/gameLabels";
 import {
   CLEAR_AFTER,
@@ -19,6 +27,7 @@ import {
 } from "../utils/progressTransfer";
 
 const misses = ref<MissEntry[]>(loadMisses());
+const flags = ref<FlagEntry[]>(loadFlags());
 const selectedGame = ref("all");
 const focusPick = ref<string[]>([]);
 const notice = ref("");
@@ -64,6 +73,7 @@ const missRows = computed(() => summarizeMisses(visibleMisses.value));
 
 function refresh() {
   misses.value = loadMisses();
+  flags.value = loadFlags();
   if (selectedGame.value !== "all" && !gameOptions.value.some((g) => g.id === selectedGame.value)) {
     selectedGame.value = "all";
   }
@@ -114,8 +124,23 @@ async function onFileChosen(event: Event) {
   say(`Imported ${result.imported} misses (${result.added} new)${skipped}.`);
 }
 
+function dropFlag(flag: FlagEntry) {
+  removeFlag(flag);
+  flags.value = loadFlags();
+}
+
+async function copyFlag(flag: FlagEntry) {
+  try {
+    await navigator.clipboard.writeText(flagReportText(flag));
+    say("Report copied.");
+  } catch {
+    say("Copying failed — your browser blocked the clipboard.", true);
+  }
+}
+
 function clearEverything() {
   clearMisses();
+  clearFlags();
   clearAnswerStats();
   refresh();
   confirmingClear.value = false;
@@ -217,12 +242,55 @@ function clearEverything() {
       </li>
     </ol>
 
-    <footer v-if="misses.length" class="review__foot">
+    <section v-if="flags.length" class="flags">
+      <h3 class="flags__title">Flagged questions</h3>
+      <p class="flags__lead">
+        Saved on this device only — nothing has been sent. Pass one along if you would
+        like it fixed.
+      </p>
+
+      <ul class="flags__list">
+        <li
+          v-for="flag in flags"
+          :key="`${flag.gameId}|${flag.question}|${flag.reason}`"
+          class="flagged"
+        >
+          <div class="flagged__top">
+            <span class="flagged__question">{{ flag.question }}</span>
+            <span class="flagged__game">{{ gameLabel(flag.gameId) }}</span>
+          </div>
+          <dl class="flagged__detail">
+            <dt>expected</dt>
+            <dd>{{ flag.answer }}</dd>
+            <dt>problem</dt>
+            <dd>{{ flagReasonLabel(flag.reason) }}</dd>
+          </dl>
+          <p v-if="flag.note" class="flagged__note">{{ flag.note }}</p>
+          <div class="flagged__actions">
+            <a
+              class="btn flag-send"
+              :href="flagIssueUrl(flag)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Report on GitHub
+            </a>
+            <button class="btn" @click="copyFlag(flag)">Copy report</button>
+            <button class="btn btn--quiet" @click="dropFlag(flag)">Remove</button>
+          </div>
+          <time class="flagged__time" :datetime="new Date(flag.at).toISOString()">
+            {{ relativeTime(flag.at) }}
+          </time>
+        </li>
+      </ul>
+    </section>
+
+    <footer v-if="misses.length || flags.length" class="review__foot">
       <button v-if="!confirmingClear" class="btn btn--quiet" @click="confirmingClear = true">
         Clear all
       </button>
       <template v-else>
-        <span class="review__confirm">Delete every stored miss and count?</span>
+        <span class="review__confirm">Delete every stored miss, flag, and count?</span>
         <button class="btn btn--danger" @click="clearEverything">Yes, clear</button>
         <button class="btn btn--quiet" @click="confirmingClear = false">Cancel</button>
       </template>
@@ -484,6 +552,116 @@ function clearEverything() {
 .miss__time {
   display: block;
   margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--app-muted);
+}
+
+.flags {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--app-line);
+}
+
+.flags__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.flags__lead {
+  margin: 0.3rem 0 0;
+  max-width: 60ch;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--app-muted);
+}
+
+.flags__list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.flagged {
+  padding: 0.85rem 1rem;
+  background: #fffdf8;
+  border: 1px solid var(--app-line);
+  border-radius: 10px;
+}
+
+.flagged__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.flagged__question {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.flagged__game {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.flagged__detail {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.6rem;
+  margin: 0.6rem 0 0;
+  font-size: 0.95rem;
+}
+
+.flagged__detail dt {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  align-self: center;
+}
+
+.flagged__detail dd {
+  margin: 0;
+}
+
+.flagged__note {
+  margin: 0.6rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--app-text);
+}
+
+.flagged__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.flagged__actions .btn {
+  font-size: 0.88rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.flag-send {
+  text-decoration: none;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.flagged__time {
+  display: block;
+  margin-top: 0.6rem;
   font-size: 0.78rem;
   color: var(--app-muted);
 }
