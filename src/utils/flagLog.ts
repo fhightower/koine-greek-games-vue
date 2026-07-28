@@ -57,13 +57,17 @@ function flagKey(flag: FlagEntry): string {
   return `${flag.gameId}|${flag.question}|${flag.reason}`;
 }
 
-/** Newest first, deduplicated, capped. The one place ordering is decided. */
+/**
+ * Newest first, deduplicated, notes trimmed and capped, log capped. The one place
+ * every invariant is enforced — imported flags arrive here too, so a note cannot
+ * dodge its limit by coming from a file rather than the keyboard.
+ */
 function normalize(flags: FlagEntry[]): FlagEntry[] {
   const byKey = new Map<string, FlagEntry>();
   // Newest wins the key, so sort before folding rather than after.
   for (const flag of [...flags].sort((a, b) => b.at - a.at)) {
     if (!byKey.has(flagKey(flag))) {
-      byKey.set(flagKey(flag), flag);
+      byKey.set(flagKey(flag), { ...flag, note: flag.note.trim().slice(0, FLAG_NOTE_LIMIT) });
     }
   }
   return [...byKey.values()].slice(0, FLAG_LOG_LIMIT);
@@ -99,9 +103,11 @@ export function saveFlags(flags: FlagEntry[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalize(flags)));
 }
 
-export function recordFlag(flag: FlagEntry) {
-  const note = flag.note.trim().slice(0, FLAG_NOTE_LIMIT);
-  saveFlags([{ ...flag, note }, ...loadFlags()]);
+/** Returns the entry as stored, so callers can report exactly what was kept. */
+export function recordFlag(flag: FlagEntry): FlagEntry {
+  const [stored] = normalize([flag]);
+  saveFlags([flag, ...loadFlags()]);
+  return stored!;
 }
 
 export function removeFlag(flag: FlagEntry) {

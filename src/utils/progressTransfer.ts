@@ -21,7 +21,7 @@ export type ProgressFile = {
 };
 
 export type ImportResult =
-  | { ok: true; imported: number; added: number; skipped: number }
+  | { ok: true; imported: number; added: number; skipped: number; flags: number }
   | { ok: false; error: string };
 
 export function buildProgressExport(exportedAt: number): ProgressFile {
@@ -86,8 +86,6 @@ export function importProgress(json: string): ImportResult {
   const merged = mergeMisses(existing, misses);
   saveMisses(merged);
 
-  // Flags merge quietly: the counts reported back are about misses, which is what the
-  // review page's import notice talks about.
   const flags = Array.isArray(file.flags) ? file.flags.filter(isFlagEntry) : [];
   saveFlags(mergeFlags(loadFlags(), flags));
 
@@ -100,5 +98,6 @@ export function importProgress(json: string): ImportResult {
     imported: misses.length,
     added: Math.max(0, merged.length - existing.length),
     skipped,
+    flags: flags.length,
   };
 }

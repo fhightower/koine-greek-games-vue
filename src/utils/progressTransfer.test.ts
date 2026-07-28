@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { loadFlags, recordFlag, type FlagEntry } from "./flagLog";
+import { FLAG_NOTE_LIMIT, loadFlags, recordFlag, type FlagEntry } from "./flagLog";
 import { loadMisses, recordMiss, type MissEntry } from "./missLog";
 import { loadAnswerStats, saveAnswerStats } from "./performanceStats";
 import {
@@ -199,6 +199,20 @@ describe("importProgress", () => {
 
     expect(result.ok).toBe(true);
     expect(loadFlags()).toEqual([makeFlag()]);
+  });
+
+  test("reports how many flags arrived, so a flag-only file is not silent", () => {
+    const result = importProgress(
+      JSON.stringify(makeFile({ flags: [makeFlag(), makeFlag({ reason: "typo" })] })),
+    );
+
+    expect(result).toMatchObject({ ok: true, imported: 0, flags: 2 });
+  });
+
+  test("caps an imported note the same way a typed one is capped", () => {
+    importProgress(JSON.stringify(makeFile({ flags: [makeFlag({ note: "x".repeat(5000) })] })));
+
+    expect(loadFlags()[0]?.note).toHaveLength(FLAG_NOTE_LIMIT);
   });
 
   test("skips malformed flags but keeps the good ones", () => {

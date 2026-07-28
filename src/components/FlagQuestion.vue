@@ -45,10 +45,9 @@ function save() {
     note: note.value,
     at: Date.now(),
   };
-  recordFlag(flag);
-  // Store what the log stored, not what was typed, so the report offered matches the
+  // Keep what the log stored, not what was typed, so the report offered matches the
   // trimmed and capped note that was actually kept.
-  saved.value = { ...flag, note: flag.note.trim().slice(0, FLAG_NOTE_LIMIT) };
+  saved.value = recordFlag(flag);
   stage.value = "saved";
 }
 

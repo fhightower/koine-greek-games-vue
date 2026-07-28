@@ -56,6 +56,13 @@ describe("recordFlag", () => {
     expect(loadFlags().map((flag) => flag.reason)).toEqual(["typo", "wrong-answer"]);
   });
 
+  test("hands back the entry as it was stored, not as it was passed", () => {
+    const stored = recordFlag(makeFlag({ note: `  ${"x".repeat(FLAG_NOTE_LIMIT + 50)}  ` }));
+
+    expect(stored).toEqual(loadFlags()[0]);
+    expect(stored.note).toHaveLength(FLAG_NOTE_LIMIT);
+  });
+
   test("trims the note", () => {
     recordFlag(makeFlag({ note: "  the gloss is off  " }));
 

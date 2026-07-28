@@ -67,6 +67,16 @@ describe("FlagQuestion", () => {
     });
   });
 
+  test("stores the reason the player picked, not the one preselected", async () => {
+    const wrapper = mountFlag();
+    await button(wrapper, "⚑ Something wrong with this question?").trigger("click");
+
+    await wrapper.get("input[type=radio][value=should-count]").setValue(true);
+    await button(wrapper, "Save flag").trigger("click");
+
+    expect(loadFlags()[0]?.reason).toBe("should-count");
+  });
+
   test("says the flag stayed on this device", async () => {
     const wrapper = mountFlag();
 
