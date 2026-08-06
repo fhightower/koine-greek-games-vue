@@ -128,7 +128,7 @@ describe("TranslationGame", () => {
     expect(loadMisses()[0]?.given).toBe("they take the gift");
   });
 
-  // A wording the instant check cannot accept, so the learner grades it themselves.
+  // A wording the match check cannot accept, so the learner grades it themselves.
   test("logs nothing when graded as correct", async () => {
     const wrapper = mountGame();
     await wrapper.get("textarea").setValue("we receive the gift");
@@ -144,11 +144,21 @@ describe("TranslationGame", () => {
   });
 });
 
-describe("TranslationGame instant check", () => {
-  test("congratulates as soon as the model translation is typed", async () => {
+describe("TranslationGame revealed verdict", () => {
+  test("says nothing about a right answer until it is revealed", async () => {
     const wrapper = mountGame();
 
     await wrapper.get("textarea").setValue("we take the gift");
+
+    expect(congratulated(wrapper)).toBe(false);
+    expect(button(wrapper, "Reveal answer").exists()).toBe(true);
+  });
+
+  test("congratulates a revealed answer that matches word for word", async () => {
+    const wrapper = mountGame();
+
+    await wrapper.get("textarea").setValue("we take the gift");
+    await button(wrapper, "Reveal answer").trigger("click");
 
     expect(congratulated(wrapper)).toBe(true);
   });
@@ -157,53 +167,62 @@ describe("TranslationGame instant check", () => {
     const wrapper = mountGame();
 
     await wrapper.get("textarea").setValue("We take the gift.");
+    await button(wrapper, "Reveal answer").trigger("click");
 
     expect(congratulated(wrapper)).toBe(true);
   });
 
-  // Nothing was clicked to make the verdict appear, so it has to announce itself.
+  // The verdict replaces the grading question the learner clicked reveal expecting.
   test("announces the verdict to a screen reader", async () => {
     const wrapper = mountGame();
 
     await wrapper.get("textarea").setValue("we take the gift");
+    await button(wrapper, "Reveal answer").trigger("click");
 
     expect(wrapper.get(".trans__correct").attributes("aria-live")).toBe("polite");
   });
 
-  test("says nothing while the translation is still wrong", async () => {
+  test("leaves a wrong translation for the learner to grade", async () => {
     const wrapper = mountGame();
 
     await wrapper.get("textarea").setValue("we take the word");
+    await button(wrapper, "Reveal answer").trigger("click");
 
     expect(congratulated(wrapper)).toBe(false);
+    expect(wrapper.find(".trans__grade").exists()).toBe(true);
   });
 
-  test("says nothing when the box is empty", () => {
+  test("leaves an empty box for the learner to grade", async () => {
     const wrapper = mountGame();
 
+    await button(wrapper, "Reveal answer").trigger("click");
+
     expect(congratulated(wrapper)).toBe(false);
+    expect(wrapper.find(".trans__grade").exists()).toBe(true);
   });
 
-  test("drops the reveal button once the answer is right", async () => {
+  test("drops the grading question once the answer is graded for the learner", async () => {
+    const wrapper = mountGame();
+
+    await wrapper.get("textarea").setValue("we take the gift");
+    await button(wrapper, "Reveal answer").trigger("click");
+
+    expect(wrapper.find(".trans__grade").exists()).toBe(false);
+  });
+
+  test("keeps the model translation hidden until it is revealed", async () => {
     const wrapper = mountGame();
 
     await wrapper.get("textarea").setValue("we take the gift");
 
-    expect(wrapper.find(".reveal").exists()).toBe(false);
-  });
-
-  test("keeps the model translation hidden until the answer is right", async () => {
-    const wrapper = mountGame();
-
-    await wrapper.get("textarea").setValue("we take the");
-
-    expect(wrapper.text()).not.toContain("we take the gift");
+    expect(wrapper.text()).not.toContain("Model translation");
   });
 
   test("records the sentence as correct without logging a miss", async () => {
     const wrapper = mountGame();
 
     await wrapper.get("textarea").setValue("we take the gift");
+    await button(wrapper, "Reveal answer").trigger("click");
     await button(wrapper, "Next question").trigger("click");
 
     expect(loadMisses()).toEqual([]);
@@ -218,6 +237,7 @@ describe("TranslationGame instant check", () => {
     const answered = greek(wrapper);
 
     await wrapper.get("textarea").setValue(englishFor(answered));
+    await button(wrapper, "Reveal answer").trigger("click");
     await button(wrapper, "Next question").trigger("click");
 
     expect(greek(wrapper)).not.toBe(answered);
@@ -225,15 +245,15 @@ describe("TranslationGame instant check", () => {
     expect(congratulated(wrapper)).toBe(false);
   });
 
-  test("moves on rather than revealing when ctrl+enter follows a right answer", async () => {
+  test("reveals rather than moving on when ctrl+enter follows a right answer", async () => {
     const wrapper = mountPool();
     const answered = greek(wrapper);
 
     await wrapper.get("textarea").setValue(englishFor(answered));
     await wrapper.get("textarea").trigger("keydown.ctrl.enter");
 
-    expect(greek(wrapper)).not.toBe(answered);
-    expect(wrapper.find(".trans__feedback").exists()).toBe(false);
+    expect(greek(wrapper)).toBe(answered);
+    expect(congratulated(wrapper)).toBe(true);
   });
 
   // The game is answered by typing, so the next answer should not need a click first.
@@ -244,6 +264,7 @@ describe("TranslationGame instant check", () => {
     });
 
     await wrapper.get("textarea").setValue(englishFor(greek(wrapper)));
+    await button(wrapper, "Reveal answer").trigger("click");
     await button(wrapper, "Next question").trigger("click");
     await nextTick();
 
@@ -257,6 +278,7 @@ describe("TranslationGame instant check", () => {
 
     await answer(wrapper, false);
     await wrapper.get("textarea").setValue(englishFor(missedGreek));
+    await button(wrapper, "Reveal answer").trigger("click");
     await button(wrapper, "Next question").trigger("click");
 
     expect(greek(wrapper)).not.toBe(missedGreek);
@@ -269,6 +291,7 @@ describe("TranslationGame instant check", () => {
 
     await answer(wrapper, false);
     await wrapper.get("textarea").setValue(englishFor(missedGreek));
+    await button(wrapper, "Reveal answer").trigger("click");
     await button(wrapper, "Next question").trigger("click");
 
     expect(await countReviews(wrapper, 12)).toBe(3);

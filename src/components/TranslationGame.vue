@@ -40,10 +40,10 @@ const current = computed(() => {
 
 const retrying = computed(() => retryIndex.value === currentIndex.value)
 
-// Word-for-word matches grade themselves, so the learner never has to reveal an
-// answer they already gave. Anything short of a match is still theirs to judge.
+// Once the answer is out, a word-for-word match grades itself: there is nothing left
+// for the learner to judge. Anything short of a match is still theirs to grade.
 const answeredCorrectly = computed(
-  () => !revealed.value && matchesTranslation(attempt.value, current.value.english)
+  () => revealed.value && matchesTranslation(attempt.value, current.value.english)
 )
 
 function reveal() {
@@ -51,15 +51,6 @@ function reveal() {
     return
   }
   revealed.value = true
-}
-
-// The keyboard shortcut does whatever the visible button under the box does.
-function submit() {
-  if (answeredCorrectly.value) {
-    grade(true)
-    return
-  }
-  reveal()
 }
 
 function grade(gotIt: boolean) {
@@ -171,29 +162,29 @@ watch(
       rows="3"
       placeholder="Type your translation…"
       :disabled="revealed"
-      @keydown.ctrl.enter="submit"
-      @keydown.meta.enter="submit"
+      @keydown.ctrl.enter="reveal"
+      @keydown.meta.enter="reveal"
     ></textarea>
 
-    <button v-if="!revealed && !answeredCorrectly" class="reveal" @click="reveal">
-      Reveal answer
-    </button>
-
-    <div v-if="answeredCorrectly" class="trans__correct" role="status" aria-live="polite">
-      <p class="trans__correct-title">Correct!</p>
-      <p class="trans__correct-note">That is the model translation, word for word.</p>
-      <button class="grade grade--got" @click="grade(true)">Next question</button>
-    </div>
+    <button v-if="!revealed" class="reveal" @click="reveal">Reveal answer</button>
 
     <div v-if="revealed" class="trans__feedback">
       <p class="trans__label">Model translation</p>
       <p class="trans__answer">{{ current.english }}</p>
 
-      <p class="trans__grade-prompt">How did you do?</p>
-      <div class="trans__grade">
-        <button class="grade grade--got" @click="grade(true)">I got it</button>
-        <button class="grade grade--missed" @click="grade(false)">Missed it</button>
+      <div v-if="answeredCorrectly" class="trans__correct" role="status" aria-live="polite">
+        <p class="trans__correct-title">Correct!</p>
+        <p class="trans__correct-note">That is the model translation, word for word.</p>
+        <button class="grade grade--got" @click="grade(true)">Next question</button>
       </div>
+
+      <template v-else>
+        <p class="trans__grade-prompt">How did you do?</p>
+        <div class="trans__grade">
+          <button class="grade grade--got" @click="grade(true)">I got it</button>
+          <button class="grade grade--missed" @click="grade(false)">Missed it</button>
+        </div>
+      </template>
 
       <FlagQuestion
         :gameId="props.gameId"
@@ -292,7 +283,7 @@ watch(
   opacity: 0.7;
 }
 
-/* The accent ring reads as a correction next to the green verdict below it. */
+/* The ring matches the green verdict below it, marking the box the answer came from. */
 .trans__input--correct,
 .trans__input--correct:focus {
   border-color: #2f5a31;
@@ -324,7 +315,6 @@ watch(
 }
 
 .trans__correct {
-  margin-top: 1.75rem;
   padding: 1.25rem 1.5rem;
   background: #e7f1e7;
   border-radius: 14px;
