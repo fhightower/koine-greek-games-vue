@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import type { TranslationSentence } from '../data/translationGames'
 import { getRandomInt } from '../utils/random'
 import { recordQuestionOutcome } from '../utils/performanceStats'
+import { matchesTranslation } from '../utils/translationMatch'
 import FlagQuestion from './FlagQuestion.vue'
 
 const props = defineProps<{
@@ -19,6 +20,7 @@ type ScheduledReview = { index: number; dueIn: number }
 const currentIndex = ref(getRandomInt(props.sentences.length))
 const attempt = ref('')
 const revealed = ref(false)
+const box = ref<HTMLTextAreaElement | null>(null)
 
 const missed = ref<TranslationSentence[]>([])
 
@@ -38,11 +40,26 @@ const current = computed(() => {
 
 const retrying = computed(() => retryIndex.value === currentIndex.value)
 
+// Word-for-word matches grade themselves, so the learner never has to reveal an
+// answer they already gave. Anything short of a match is still theirs to judge.
+const answeredCorrectly = computed(
+  () => !revealed.value && matchesTranslation(attempt.value, current.value.english)
+)
+
 function reveal() {
   if (revealed.value) {
     return
   }
   revealed.value = true
+}
+
+// The keyboard shortcut does whatever the visible button under the box does.
+function submit() {
+  if (answeredCorrectly.value) {
+    grade(true)
+    return
+  }
+  reveal()
 }
 
 function grade(gotIt: boolean) {
@@ -89,6 +106,9 @@ function scheduleReviews(index: number) {
 function nextQuestion() {
   attempt.value = ''
   revealed.value = false
+
+  // Answering is typing, so hand the keyboard back once the box is enabled again.
+  nextTick(() => box.value?.focus())
 
   // A blocked retry does not advance the schedule: however many attempts it takes,
   // the sentence occupies one slot in the spacing counted by the reviews below.
@@ -144,16 +164,26 @@ watch(
     <p class="trans__greek">{{ current.greek }}</p>
 
     <textarea
+      ref="box"
       v-model="attempt"
       class="trans__input"
+      :class="{ 'trans__input--correct': answeredCorrectly }"
       rows="3"
       placeholder="Type your translation…"
       :disabled="revealed"
-      @keydown.ctrl.enter="reveal"
-      @keydown.meta.enter="reveal"
+      @keydown.ctrl.enter="submit"
+      @keydown.meta.enter="submit"
     ></textarea>
 
-    <button v-if="!revealed" class="reveal" @click="reveal">Reveal answer</button>
+    <button v-if="!revealed && !answeredCorrectly" class="reveal" @click="reveal">
+      Reveal answer
+    </button>
+
+    <div v-if="answeredCorrectly" class="trans__correct" role="status" aria-live="polite">
+      <p class="trans__correct-title">Correct!</p>
+      <p class="trans__correct-note">That is the model translation, word for word.</p>
+      <button class="grade grade--got" @click="grade(true)">Next question</button>
+    </div>
 
     <div v-if="revealed" class="trans__feedback">
       <p class="trans__label">Model translation</p>
@@ -262,6 +292,13 @@ watch(
   opacity: 0.7;
 }
 
+/* The accent ring reads as a correction next to the green verdict below it. */
+.trans__input--correct,
+.trans__input--correct:focus {
+  border-color: #2f5a31;
+  box-shadow: 0 6px 18px rgba(47, 90, 49, 0.12);
+}
+
 .reveal,
 .grade {
   padding: 0.7rem 1.5rem;
@@ -284,6 +321,33 @@ watch(
 .grade:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(156, 59, 46, 0.18);
+}
+
+.trans__correct {
+  margin-top: 1.75rem;
+  padding: 1.25rem 1.5rem;
+  background: #e7f1e7;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.trans__correct-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: #2f5a31;
+}
+
+.trans__correct-note {
+  margin: 0.35rem 0 1.1rem;
+  font-size: 0.95rem;
+  color: #4a6b4b;
+}
+
+.trans__correct .grade--got {
+  background: #2f5a31;
+  color: #fffdf8;
 }
 
 .trans__feedback {
